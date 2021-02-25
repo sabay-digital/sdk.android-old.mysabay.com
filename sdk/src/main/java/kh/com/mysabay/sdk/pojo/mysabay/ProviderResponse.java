@@ -47,6 +47,12 @@ public class ProviderResponse implements Parcelable {
     @SerializedName("issueCurrencies")
     @Expose
     public List<String> issueCurrencies;
+    @SerializedName("additionalHeader")
+    @Expose
+    public Object additionalHeader;
+    @SerializedName("additionalBody")
+    @Expose
+    public Object additionalBody;
 
     public final static Creator<ProviderResponse> CREATOR = new Creator<ProviderResponse>() {
 

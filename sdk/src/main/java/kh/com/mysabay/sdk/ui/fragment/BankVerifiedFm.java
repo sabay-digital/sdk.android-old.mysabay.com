@@ -249,11 +249,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
                 "        <input type=\"hidden\" name=\"hash\" value=\"" + item.hash + "\">\n" +
                 "        <input type=\"hidden\" name=\"signature\" value=\"" + item.signature + "\">\n" +
                 "        <input type=\"hidden\" name=\"public_key\" value=\"" + item.publicKey + "\">\n" +
-                "        <input type=\"hidden\" name=\"redirect\" value=\"" + item.redirect + "\">\n" +
-                "        <input type=\"hidden\" name=\"wing_authorization\" value=\"" + "{&quot;username&quot;: &quot;" + item.wingAuthorization.userName + "&quot;," +
-                "        &quot;rest_api_key&quot;: &quot;" + item.wingAuthorization.restApiKey + "&quot;, &quot;biller_code&quot;: &quot;" + item.wingAuthorization.billerCode + "&quot;," +
-                "        &quot;password&quot;: &quot;" + item.wingAuthorization.password + "&quot;, &quot;currency&quot;: &quot;" + item.wingAuthorization.currency + "&quot;, " +
-                "        &quot;sandbox&quot;: &quot;" + item.wingAuthorization.sandbox + "&quot; }" + "\">\n" +
+                "        <input type=\"hidden\" name=\"wing_authorization\" value=\"" + item.additionalBody + "\">\n" +
                 "    </form>\n" +
                 "    <script>\n" +
                 "        $( document ).ready(function() {\n" +

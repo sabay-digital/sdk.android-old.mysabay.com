@@ -16,11 +16,19 @@ import com.apollographql.apollo.exception.ApolloException;
 import com.apollographql.apollo.request.RequestHeaders;
 import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
+import com.mysabay.sdk.CheckExistingLoginQuery;
+import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
+import com.mysabay.sdk.CreateMySabayLoginMutation;
+import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
 import com.mysabay.sdk.DeleteTokenMutation;
+import com.mysabay.sdk.GetMatomoTrackingIdQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
+import com.mysabay.sdk.LoginWithMySabayMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
 import com.mysabay.sdk.RefreshTokenMutation;
+import com.mysabay.sdk.SendCreateMySabayWithPhoneOTPMutation;
 import com.mysabay.sdk.UserProfileQuery;
+import com.mysabay.sdk.VerifyMySabayMutation;
 import com.mysabay.sdk.VerifyOtpCodMutation;
 import com.mysabay.sdk.VerifyTokenQuery;
 
@@ -407,6 +415,7 @@ public class MySabaySDK {
 
     @Subscribe
     public void onLoginEvent(SubscribeLogin event) {
+        LogUtil.info("Subscribe", "Login");
         if (loginListner != null) {
             if (!StringUtils.isBlank(event.accessToken)) {
                 loginListner.loginSuccess(event.accessToken);
@@ -419,8 +428,13 @@ public class MySabaySDK {
 
     @Subscribe
     public void onPaymentEvent(SubscribePayment event) {
+        LogUtil.info("Subscribe", event.error.toString());
         if (mPaymentListener != null) {
-            mPaymentListener.purchaseSuccess(event);
+            if (event.data != null) {
+                mPaymentListener.purchaseSuccess(event);
+            } else {
+                mPaymentListener.purchaseFailed(event.error);
+            }
         } else
             LogUtil.debug(TAG, "loginListerner null " + gson.toJson(event));
     }
@@ -475,24 +489,6 @@ public class MySabaySDK {
         return mSdkConfiguration;
     }
 
-    // provided function
-
-    public void loginWithPhoneNumber(String phoneNumber, String dialCode, DataCallback<LoginWithPhoneMutation.Sso_loginPhone> dataCallback) {
-        userService.loginWithPhoneNumber(phoneNumber, dialCode, dataCallback);
-    }
-
-    public void verifyOTPCode(String phoneNumber, String otpCode, DataCallback<VerifyOtpCodMutation.Sso_verifyOTP> dataCallback) {
-        userService.verifyOTPCode(phoneNumber, otpCode, dataCallback);
-    }
-
-    public void getStoreFromServer(String serviceCode, String token, DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> dataCallback) {
-        storeService.getShopFromServerGraphQL(serviceCode, token, dataCallback);
-    }
-
-    public void getUserInfo(String token, DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
-        userService.getUserProfile(token, dataCallback);
-    }
-
     /**
      *  Create Tracker instance
      */
@@ -534,10 +530,64 @@ public class MySabaySDK {
     }
 
     public String storeApiUrl() {
-        return mSdkConfiguration.isSandBox ? "https://store.testing.mysabay.com/" : "https://store.mysabay.com/";
+        return mSdkConfiguration.isSandBox ? "https://pp.master.mysabay.com/" : "https://pp.master.mysabay.com/";
+    }
+
+    public String getPaymentAddress(String invoiceId) {
+        return mSdkConfiguration.isSandBox ? invoiceId + "*invoice.master.sabay.com" : invoiceId + "*invoice.sabay.com";
     }
 
     public String serviceCode() {
         return mSdkConfiguration.serviceCode;
+    }
+
+    // provided function
+
+    public void loginWithPhoneNumber(String phoneNumber, DataCallback<LoginWithPhoneMutation.Sso_loginPhone> dataCallback) {
+        userService.loginWithPhoneNumber(phoneNumber, dataCallback);
+    }
+
+    public void verifyOTPCode(String phoneNumber, String otpCode, DataCallback<VerifyOtpCodMutation.Sso_verifyOTP> dataCallback) {
+        userService.verifyOTPCode(phoneNumber, otpCode, dataCallback);
+    }
+
+    public void getUserInfo(String token, DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
+        userService.getUserProfile(token, dataCallback);
+    }
+
+    public void loginWithMySabay(String username, String password, DataCallback<LoginWithMySabayMutation.Sso_loginMySabay> dataCallback) {
+        userService.loginWithMySabayAccount(username, password, dataCallback);
+    }
+
+    public void verifyMySabay(String username, String password, DataCallback<VerifyMySabayMutation.Sso_verifyMySabay> dataCallback) {
+        userService.verifyMySabay(username, password, dataCallback);
+    }
+
+    public void createMySabayAccount(String username, String password, DataCallback<CreateMySabayLoginMutation.Sso_createMySabayLogin> dataCallback) {
+        userService.createMySabayAccount(username, password, dataCallback);
+    }
+
+    public void createMySabayLoginWithPhone(String username, String password, String phoneNumber, String otpCode, DataCallback<CreateMySabayLoginWithPhoneMutation.Sso_createMySabayLoginWithPhone> dataCallback) {
+        userService.createMySabayLoginWithPhone(username, phoneNumber, password, otpCode, dataCallback);
+    }
+
+    public void createMySabayWithPhoneOTP(String phoneNumber, DataCallback<SendCreateMySabayWithPhoneOTPMutation.Sso_sendCreateMySabayWithPhoneOTP> dataCallback) {
+        userService.createMySabayWithPhoneOTP(phoneNumber, dataCallback);
+    }
+
+    public void checkExistingMySabayUsername(String username, DataCallback<CheckExistingLoginQuery.Data> dataCallback) {
+        userService.checkExistingMySabayUsername(username, dataCallback);
+    }
+
+    public void getStoreFromServer(String serviceCode, String token, DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> dataCallback) {
+        storeService.getShopFromServerGraphQL(serviceCode, token, dataCallback);
+    }
+
+    public void getMySabayCheckout(String itemId, DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct> callbackData) {
+        storeService.getMySabayCheckout(itemId, callbackData);
+    }
+
+    public void getMatomoTrackingId(String serviceCode, DataCallback<GetMatomoTrackingIdQuery.Sso_service> dataCallback) {
+        userService.getTrackingID(serviceCode, dataCallback);
     }
 }

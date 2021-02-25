@@ -118,7 +118,6 @@
             android:id="@+id/rcv"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="@dimen/padding_10"
             android:background="@color/colorBackground"
             app:layoutManager="android.support.v7.widget.GridLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"

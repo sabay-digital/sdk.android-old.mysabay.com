@@ -12,7 +12,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import kh.com.mysabay.sdk.pojo.Persona;
+import java.util.List;
+
+import kh.com.mysabay.sdk.pojo.shop.PaymentServiceProvider;
 
 /**
  * Created by Tan Phirum on 3/10/20
@@ -20,21 +22,15 @@ import kh.com.mysabay.sdk.pojo.Persona;
  */
 public class UserProfileItem implements Parcelable {
 
-    @SerializedName("id")
-    @Expose
-    public Integer id;
     @SerializedName("userID")
     @Expose
     public Integer userID;
-    @SerializedName("profileName")
+    @SerializedName("givenName")
     @Expose
-    public String profileName;
-    @SerializedName("coin")
+    public String givenName;
+    @SerializedName("wallet")
     @Expose
-    public Double coin;
-    @SerializedName("gold")
-    @Expose
-    public Double gold;
+    public List<Wallet> wallet;
     @SerializedName("status")
     @Expose
     public Integer status;
@@ -67,13 +63,11 @@ public class UserProfileItem implements Parcelable {
     };
 
     protected UserProfileItem(@NotNull Parcel in) {
-        this.id = ((Integer) in.readValue((Integer.class.getClassLoader())));
         this.userID = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        this.profileName = ((String) in.readValue((String.class.getClassLoader())));
-        this.gold = ((Double) in.readValue((Double.class.getClassLoader())));
-        this.coin = ((Double) in.readValue((Double.class.getClassLoader())));
+        this.givenName = ((String) in.readValue((String.class.getClassLoader())));
         this.status = ((Integer) in.readValue((Integer.class.getClassLoader())));
         this.localPayEnabled = ((Boolean) in.readValue((Integer.class.getClassLoader())));
+        in.readList(this.wallet, (Wallet.class.getClassLoader()));
     }
 
     /**
@@ -83,26 +77,18 @@ public class UserProfileItem implements Parcelable {
     }
 
     /**
-     * @param id
      * @param userID
-     * @param coin
-     * @param gold
+     * @param wallet
      * @param localPayEnabled
      * @param status
      */
-    public UserProfileItem(Integer id, Integer userID, Double coin, Double gold, Boolean localPayEnabled, Integer status) {
+    public UserProfileItem(Integer userID, String givenName, List<Wallet> wallet, Boolean localPayEnabled, Integer status) {
         super();
-        this.id = id;
         this.userID = userID;
-        this.coin = coin;
-        this.gold = gold;
+        this.givenName = givenName;
+        this.wallet = wallet;
         this.status = status;
         this.localPayEnabled = localPayEnabled;
-    }
-
-    public UserProfileItem withId(Integer id) {
-        this.id = id;
-        return this;
     }
 
     public UserProfileItem withUserId(Integer userID) {
@@ -110,18 +96,13 @@ public class UserProfileItem implements Parcelable {
         return this;
     }
 
-    public UserProfileItem withCoin(Double coin) {
-        this.coin = coin;
+    public UserProfileItem withWallet(List<Wallet> wallet) {
+        this.wallet = wallet;
         return this;
     }
 
-    public UserProfileItem withGold(Double gold) {
-        this.gold = gold;
-        return this;
-    }
-
-    public  UserProfileItem withProfileName(String profileName) {
-        this.profileName = profileName;
+    public  UserProfileItem withGivenName(String givenName) {
+        this.givenName = givenName;
         return this;
     }
 
@@ -142,14 +123,16 @@ public class UserProfileItem implements Parcelable {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("id", id).append("userID", userID)
-                .append("profileName", profileName).append("gold", gold).append("coin", coin)
-                .append("status", status).append("localPayEnabled", localPayEnabled).toString();
+        return new ToStringBuilder(this).append("userID", userID)
+                .append("givenName", givenName).append("wallet", wallet)
+                .append("status", status).append("localPayEnabled", localPayEnabled)
+                .append("persona", persona)
+                .toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(userID).append(id).append(profileName).append(coin).append(gold).append(status).append(localPayEnabled).toHashCode();
+        return new HashCodeBuilder().append(userID).append(givenName).append(wallet).append(status).append(localPayEnabled).append(persona).toHashCode();
     }
 
     @Override
@@ -161,17 +144,14 @@ public class UserProfileItem implements Parcelable {
             return false;
         }
         UserProfileItem rhs = ((UserProfileItem) other);
-        return new EqualsBuilder().append(userID, rhs.userID).append(id, rhs.id).append(profileName, rhs.profileName)
-                .append(coin, rhs.coin).append(gold, rhs.gold).append(status, rhs.status)
-                .append(localPayEnabled, rhs.localPayEnabled).isEquals();
+        return new EqualsBuilder().append(userID, rhs.userID).append(wallet, rhs.wallet).append(givenName, rhs.givenName)
+                .append(status, rhs.status).append(localPayEnabled, rhs.localPayEnabled).isEquals();
     }
 
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(id);
         dest.writeValue(userID);
-        dest.writeValue(profileName);
-        dest.writeValue(coin);
-        dest.writeValue(gold);
+        dest.writeValue(givenName);
+        dest.writeValue(wallet);
         dest.writeValue(status);
         dest.writeValue(localPayEnabled);
         dest.writeValue(persona);
@@ -179,14 +159,6 @@ public class UserProfileItem implements Parcelable {
 
     public int describeContents() {
         return 0;
-    }
-
-    public String toSabayCoin() {
-        return (String.format("%,.2f", coin)) + " SC";
-    }
-
-    public String toSabayGold() {
-        return (String.format("%,.2f", gold)) + " SG";
     }
 
 }

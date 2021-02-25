@@ -3,6 +3,7 @@ package kh.com.mysabay.sample;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.LoginWithPhoneMutation;
 import com.mysabay.sdk.UserProfileQuery;
@@ -19,7 +20,7 @@ public class FunctionCallActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_function_call);
 
-        MySabaySDK.getInstance().loginWithPhoneNumber("89970429", "855", new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
+        MySabaySDK.getInstance().loginWithPhoneNumber("85589970429", new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
             @Override
             public void onSuccess(LoginWithPhoneMutation.Sso_loginPhone response) {
                 LogUtil.info("Success", response.toString());
@@ -46,6 +47,18 @@ public class FunctionCallActivity extends AppCompatActivity {
         MySabaySDK.getInstance().getStoreFromServer("aog1", "", new DataCallback<GetProductsByServiceCodeQuery.Store_listProduct>() {
             @Override
             public void onSuccess(GetProductsByServiceCodeQuery.Store_listProduct response) {
+                LogUtil.info("Success", response.toString());
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                LogUtil.info("Error", error.toString());
+            }
+        });
+
+        MySabaySDK.getInstance().getMySabayCheckout("", new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
+            @Override
+            public void onSuccess(Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct response) {
                 LogUtil.info("Success", response.toString());
             }
 

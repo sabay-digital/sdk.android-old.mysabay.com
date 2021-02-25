@@ -8,6 +8,7 @@ import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.MySabayItem;
 import kh.com.mysabay.sdk.pojo.payment.PaymentBody;
+import kh.com.mysabay.sdk.pojo.payment.PaymentBodyPreAuth;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.ThirdPartyItem;
@@ -54,12 +55,12 @@ public class StoreRepo implements StoreApi {
     }
 
     @Override
-    public Observable<PaymentResponseItem> postToPaid(String appSecret, String token, PaymentBody body) {
-        return this.storeApi.postToPaid(appSecret, "Bearer " + token, body);
+    public Observable<PaymentResponseItem> postToPaid(String token, String hash, String signature, String publicKey, String payment, String paymentAddress) {
+        return this.storeApi.postToPaid("Bearer " + token, hash, signature, publicKey, payment , paymentAddress);
     }
 
     @Override
-    public Observable<ResponseItem> postToChargeOneTime(String appSecret, String token, PaymentBody body) {
-        return this.storeApi.postToChargeOneTime(appSecret, "Bearer " + token, body);
+    public Observable<ResponseItem> postToChargeOneTime(String token, String hash, String signature, String publicKey, String payment, String paymentAddress) {
+        return this.storeApi.postToChargeOneTime("Bearer " + token, hash, signature, publicKey, payment , paymentAddress);
     }
 }

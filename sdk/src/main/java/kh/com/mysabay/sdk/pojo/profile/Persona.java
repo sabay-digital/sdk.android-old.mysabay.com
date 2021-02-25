@@ -1,4 +1,4 @@
-package kh.com.mysabay.sdk.pojo;
+package kh.com.mysabay.sdk.pojo.profile;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -18,9 +18,17 @@ public class Persona implements Parcelable {
     @SerializedName("uuid")
     @Expose
     public String uuid;
+    @SerializedName("serviceCode")
+    @Expose
+    public String serviceCode;
+    @SerializedName("mysabayUserID")
+    @Expose
+    public String mysabayUserID;
 
     protected Persona(@NotNull Parcel in) {
-        uuid = in.readString();
+        this.uuid = ((String) in.readValue((String.class.getClassLoader())));
+        this.serviceCode = ((String) in.readValue((String.class.getClassLoader())));
+        this.mysabayUserID = ((String) in.readValue((String.class.getClassLoader())));
     }
 
     public static final Creator<Persona> CREATOR = new Creator<Persona>() {
@@ -40,9 +48,20 @@ public class Persona implements Parcelable {
         return this;
     }
 
+    public Persona withServiceCode(String serviceCode) {
+        this.serviceCode = serviceCode;
+        return this;
+    }
+
+    public Persona withMySabayUserId(String mysabayUserID) {
+        this.mysabayUserID = mysabayUserID;
+        return this;
+    }
+
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("uuid", uuid).toString();
+        return new ToStringBuilder(this).append("uuid", uuid).
+                append("serviceCode", serviceCode).append("mysabayUserID", mysabayUserID).toString();
     }
 
     @Override
@@ -53,5 +72,7 @@ public class Persona implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(uuid);
+        dest.writeValue(serviceCode);
+        dest.writeValue(mysabayUserID);
     }
 }

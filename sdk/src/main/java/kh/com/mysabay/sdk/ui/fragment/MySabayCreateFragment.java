@@ -15,14 +15,13 @@ import com.apollographql.apollo.exception.ApolloException;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.mysabay.sdk.CheckExistingLoginQuery;
-
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.base.BaseFragment;
+import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.FmCreateMysabayBinding;
 import kh.com.mysabay.sdk.pojo.NetworkState;
 import kh.com.mysabay.sdk.ui.activity.LoginActivity;
@@ -66,7 +65,7 @@ public class MySabayCreateFragment extends BaseFragment<FmCreateMysabayBinding, 
         mViewBinding.viewMainRegister.setBackgroundResource(colorCodeBackground());
         this.viewModel = LoginActivity.loginActivity.viewModel;
 
-        MySabaySDK.getInstance().trackPageView(getContext(), "/sdk/register-mysabay-screen", "/sdk/register-mysabay-scree");
+        MySabaySDK.getInstance().trackPageView(getContext(), "/sdk/register-mysabay-screen", "/sdk/register-mysabay-screen");
     }
 
     @Override
@@ -113,51 +112,27 @@ public class MySabayCreateFragment extends BaseFragment<FmCreateMysabayBinding, 
                 showCheckFields(mViewBinding.edtConfirmPassword, R.string.msg_confirm_password_not_match);
             }
             else {
-                viewModel.checkExistingLogin(username).enqueue(new ApolloCall.Callback<CheckExistingLoginQuery.Data>() {
+                viewModel.checkExistingLogin(username, new DataCallback<CheckExistingLoginQuery.Data>() {
                     @Override
-                    public void onResponse(@NotNull Response<CheckExistingLoginQuery.Data> response) {
-                        if (response.getData() != null) {
-                            if (response.getData().sso_existingLogin()) {
-                                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        showCheckFields(getContext(), mViewBinding.edtUsername, R.string.msg_username_already_exist);
-                                    }
-                                });
-                            } else {
-                                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (mData != null) {
-                                            if (mData.equals(MySabayLoginConfirmFragment.TAG)) {
-                                                viewModel.createMySabayWithPhoneOTP(v.getContext(), username, password);
-                                                LogUtil.info("mdata", "not null");
-                                            }
-                                        } else {
-                                            viewModel.createMySabayAccount(v.getContext(), username, password);
-                                            LogUtil.info("mdata", "null");
-                                        }
-                                    }
-                                });
-                            }
+                    public void onSuccess(CheckExistingLoginQuery.Data response) {
+                        if(response.sso_existingLogin()) {
+                            showCheckFields(getContext(), mViewBinding.edtUsername, R.string.msg_username_already_exist);
                         } else {
-                            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    MessageUtil.displayDialog(getContext(), "Can't communicate with sersver");
+                            if (mData != null) {
+                                if (mData.equals(MySabayLoginConfirmFragment.TAG)) {
+                                    viewModel.createMySabayWithPhoneOTP(v.getContext(), username, password);
+                                    LogUtil.info("mdata", "not null");
                                 }
-                            });
+                            } else {
+                                viewModel.createMySabayAccount(v.getContext(), username, password);
+                                LogUtil.info("mdata", "null");
+                            }
                         }
                     }
 
                     @Override
-                    public void onFailure(@NotNull ApolloException e) {
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                MessageUtil.displayDialog(getContext(), "Check Existing Login Failed");
-                            }
-                        });
+                    public void onFailed(Object error) {
+                        MessageUtil.displayDialog(getContext(), "Check Existing Login Failed");
                     }
                 });
             }

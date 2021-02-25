@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.matomo.sdk:tracker:4.0.2@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/9b0fd17a48b194f666309987fdc9b3ef/tracker-4.0.2/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/9b0fd17a48b194f666309987fdc9b3ef/tracker-4.0.2/res" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.matomo.sdk/tracker/4.0.2/22be9c68a6c3293ebe2a5a0033127d53d8a8c28/tracker-4.0.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.matomo.sdk/tracker/4.0.2/834f2cfe94cd42ad4a7a7cc17d27b03a95fa024/tracker-4.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

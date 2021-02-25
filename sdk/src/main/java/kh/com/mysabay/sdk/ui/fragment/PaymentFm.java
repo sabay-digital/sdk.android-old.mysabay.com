@@ -56,6 +56,7 @@ import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
 import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
+import kh.com.mysabay.sdk.pojo.profile.Wallet;
 import kh.com.mysabay.sdk.pojo.shop.Data;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
@@ -112,15 +113,14 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
     @Override
     public void initializeObjects(@NotNull View v, Bundle args) {
-        AppItem item = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
         mViewBinding.viewMainPayment.setBackgroundResource(colorCodeBackground());
         mViewBinding.materialCardView.setBackgroundResource(colorCodeBackground());
         mViewBinding.btnPay.setTextColor(textColorCode());
         mViewBinding.cdSabayId.setBackgroundResource(colorCodeBackground());
-        mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), item.mysabayUserId.toString()));
 
         viewModel.setShopItemSelected(mData);
         viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), mData.id);
+        viewModel.createInvoice(v.getContext(), mData);
 
         onBillingSetupFinished();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
@@ -172,7 +172,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         mViewBinding.btnPay.setBackgroundResource(R.color.secondary);
         viewModel.getItemSelected().observe(this, data -> {
             if (data != null) {
-                mViewBinding.tvPoint.setText(data.displayName);
+                mViewBinding.tvPoint.setText(data.properties.displayName);
                 mViewBinding.tvPrice.setText(data.toUSDPrice());
                 mViewBinding.tvTotal.setText(data.toUSDPrice());
                 mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.toUSDPrice()));
@@ -181,28 +181,29 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
         MySabaySDK.getInstance().getUserProfile(info -> {
             Gson g = new Gson();
-            UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
-            balanceCoin = userProfile.coin;
-            balanceGold = userProfile.gold;
-
-            if (balanceCoin > 0) {
-                String sabayCoin = "<b>" + userProfile.toSabayCoin() + "</b>";
-                mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
-                mViewBinding.tvMySabay.setText(getString(R.string.mysabay));
-            }
-            if (balanceGold > 0) {
-                String sabayGold = "<b style=\"color:blue;\">" + userProfile.toSabayGold() + "</b>";
-                mViewBinding.dividerBalance.setVisibility(balanceCoin > 0 ? View.VISIBLE : View.GONE);
-                mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
-            } else {
-                mViewBinding.tvSabayGoldBalance.setVisibility(View.GONE);
-                mViewBinding.dividerBalance.setVisibility(View.GONE);
-            }
-
-            if (balanceCoin > 0 || balanceGold > 0) {
+            if (info != null) {
+                UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
+                mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), userProfile.persona.mysabayUserID));
                 mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
-            } else {
-                mViewBinding.sabayBalance.setVisibility(View.GONE);
+                for (Wallet wallet: userProfile.wallet) {
+                    LogUtil.info("Balance", wallet.balance + "" + wallet.assetCode);
+                    if(wallet.assetCode.equals("SC")) {
+                        String sabayCoin = "<b>" + wallet.toSabayCoin() + "</b>";
+                        mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
+                        balanceCoin = wallet.balance;
+                    } else if (wallet.assetCode.equals("SG")) {
+                        String sabayGold = "<b>" + wallet.toSabayGold() + "</b>";
+                        balanceGold = wallet.balance;
+                        mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
+                        mViewBinding.dividerBalance.setVisibility(wallet.balance > 0 ? View.VISIBLE : View.GONE);
+                    }
+                }
+
+                if (balanceCoin > 0 || balanceGold > 0) {
+                    mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
+                } else {
+                    mViewBinding.sabayBalance.setVisibility(View.GONE);
+                }
             }
         });
 
@@ -309,7 +310,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         mViewBinding.btnMysabay.setOnClickListener(v -> {
             checkedId[0] = v.getId();
             ShopItem data = viewModel.getItemSelected().getValue();
-            mViewBinding.tvTotal.setText(String.format(data.priceInSG <= balanceGold ? data.toRoundSabayGold() : data.toRoundSabayCoin()));
+            mViewBinding.tvTotal.setText(String.format(data.properties.priceInSG <= balanceGold ? data.properties.toRoundSabayGold() : data.properties.toRoundSabayCoin()));
             mViewBinding.tvMySabay.setTextColor(textColorCode());
             mViewBinding.btnMysabay.setBackgroundResource(R.drawable.shape_button_primary);
             mViewBinding.tvInAppPurchase.setTextColor(0xFFE3B852);
@@ -321,13 +322,13 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
             mViewBinding.btnLabel.setTextColor(textColorCode());
             mViewBinding.btnPreAuthPay.setBackgroundResource(R.drawable.payment_button);
             mViewBinding.imgOtherPaymentLogo.setImageResource(R.mipmap.other_payment_option);
-            if (data.priceInSC <= balanceCoin || data.priceInSG <= balanceGold) {
-                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.priceInSG <= balanceGold ? data.toRoundSabayGold() : data.toRoundSabayCoin()));
+            if (data.properties.priceInSC <= balanceCoin || data.properties.priceInSG <= balanceGold) {
+                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.properties.priceInSG <= balanceGold ? data.properties.toRoundSabayGold() : data.properties.toRoundSabayCoin()));
                 mViewBinding.btnPay.setEnabled(true);
                 mViewBinding.btnPay.setBackgroundResource(R.color.colorYellow);
 
             } else {
-                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.toRoundSabayCoin()));
+                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.properties.toRoundSabayCoin()));
                 mViewBinding.btnPay.setEnabled(false);
                 mViewBinding.btnPay.setBackgroundResource(R.color.secondary);
             }
@@ -388,17 +389,24 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 ShopItem data = viewModel.getItemSelected().getValue();
                 if (data == null) return;
 
+                ProviderResponse provider =  viewModel.getMysabayProviderId("sabay_coin");
                 MessageUtil.displayDialog(v.getContext(), getString(R.string.payment_confirmation),
-                        String.format(getString(R.string.are_you_pay_with_my_sabay_provider), balanceGold >= data.priceInSG ? data.toRoundSabayGold() : data.toRoundSabayCoin()), getString(R.string.cancel),
+                        String.format(getString(R.string.are_you_pay_with_my_sabay_provider), balanceGold >= data.properties.priceInSG ? data.properties.toRoundSabayGold() : data.properties.toRoundSabayCoin()), getString(R.string.cancel),
                         getString(R.string.confirm), colorCodeBackground(), null,
-                        (dialog, which) -> viewModel.postToPaidWithMySabayProvider(v.getContext(), balanceGold));
+                        (dialog, which) -> {
+                            viewModel.getInvoiceId().observe(this, invoiceId -> {
+                                if (data != null) {
+                                    viewModel.getPaymentDetail((StoreActivity) getActivity(), provider.id, invoiceId, mData, "pre-auth");
+                                }
+                            });
+                         });
 
             } else if (checkedId[0] == R.id.btn_third_bank_provider) {
                 viewModel.get3PartyCheckout(v.getContext());
             } else if (checkedId[0] == R.id.btn_pre_auth_pay) {
                 ProviderResponse paidItem = gson.fromJson(MySabaySDK.getInstance().getMethodSelected(), ProviderResponse.class);
-                if (paidItem != null)
-                    viewModel.postToPaidWithBank((StoreActivity) getActivity(), paidItem);
+//                if (paidItem != null)
+//                    viewModel.postToPaidWithBank((StoreActivity) getActivity(), paidItem);
             } else
                 MessageUtil.displayToast(v.getContext(), getString(R.string.please_choose_payment_option));
         });
@@ -451,7 +459,14 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         view.viewPaymentProvider.setBackgroundResource(colorCodeBackground());
         RecyclerView rcv = view.bankRcv;
         BankProviderAdapter adapter = new BankProviderAdapter(context, data, item -> {
-            viewModel.postToPaidWithBank((StoreActivity) getActivity(), (ProviderResponse) item);
+//            viewModel.postToPaidWithBank((StoreActivity) getActivity(), (ProviderResponse) item);
+
+            ProviderResponse provider = (ProviderResponse) item;
+            viewModel.getInvoiceId().observe(this, invoiceId -> {
+                if (data != null) {
+                    viewModel.getPaymentDetail((StoreActivity) getActivity(), provider.id, invoiceId, mData, "oneTime");
+                }
+            });
             if (dialogBank != null)
                 dialogBank.dismiss();
             viewModel._thirdPartyItemMediatorLiveData.setValue(new ArrayList<>());

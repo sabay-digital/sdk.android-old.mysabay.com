@@ -33,9 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
-
 import kh.com.mysabay.sdk.BuildConfig;
 import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.MySabaySDK;
@@ -89,9 +87,8 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
         mViewBinding.fb.setTextColor(textColorCode());
         mViewBinding.btnLoginMysabay.setTextColor(textColorCode());
         mViewBinding.edtPhone.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
-
-        this.viewModel = LoginActivity.loginActivity.viewModel;
         this.onTaskCompleted();
+        this.viewModel = LoginActivity.loginActivity.viewModel;
 
         mManager = getFragmentManager();
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -100,7 +97,6 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
             LogUtil.info("TAG", "Username is: " + Profile.getCurrentProfile().getName());
             LogUtil.info("TAG", "Username is: " + accessToken.getToken());
         }
-
         callbackManager = CallbackManager.Factory.create();
 
         MySabaySDK.getInstance().trackPageView(getContext(), "/sdk/login-screen", "/sdk/login-screen");
@@ -109,9 +105,9 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
     @Override
     public void assignValues() {
         if (BuildConfig.DEBUG) {
-            mViewBinding.edtPhone.setText("098637352");
+            mViewBinding.edtPhone.setText("012808080");
         }
-     //   mViewBinding.edtPhone.requestFocus();
+//        mViewBinding.edtPhone.requestFocus();
         new Handler().postDelayed(() -> showProgressState(new NetworkState(NetworkState.Status.SUCCESS)), 500);
     }
 
@@ -132,7 +128,6 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
             KeyboardUtils.hideKeyboard(getContext(), v);
             String phoneNo = mViewBinding.edtPhone.getText().toString();
             PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-
             if (StringUtils.isAnyBlank(phoneNo)) {
                 showCheckFields(mViewBinding.edtPhone, R.string.msg_input_phone);
             } else if (StringUtils.isAnyBlank(dialCode)) {
@@ -160,9 +155,9 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
             if (getActivity() != null)
                 getActivity().onBackPressed();
         });
-
         mViewBinding.btnLoginFb.setReadPermissions("email");
         mViewBinding.btnLoginFb.setFragment(this);
+
         mViewBinding.btnLoginFb.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -187,12 +182,6 @@ public class LoginFragment extends BaseFragment<FragmentLoginBinding, UserApiVM>
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
-
-        LogUtil.info("OnActivityResult", requestCode + "");
-    }
-
-    public void initAddFragment(Fragment f, String tag) {
-        initAddFragment(f, tag, false);
     }
 
     public void initAddFragment(Fragment f, String tag, boolean isBack) {

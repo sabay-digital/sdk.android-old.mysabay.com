@@ -44,6 +44,7 @@ import kh.com.mysabay.sdk.pojo.googleVerify.DataBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
+import kh.com.mysabay.sdk.pojo.profile.Wallet;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
@@ -87,12 +88,10 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
 
     @Override
     public void initializeObjects(@NotNull View v, Bundle args) {
-        AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
-        
         mViewBinding.viewMainShop.setBackgroundResource(colorCodeBackground());
         mViewBinding.rcv.setBackgroundResource(colorCodeBackground());
         mViewBinding.cdSabayId.setBackgroundResource(colorCodeBackground());
-        mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), appItem.mysabayUserId.toString()));
+//        mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), appItem.mysabayUserId.toString()));
 
         if (getContext() != null)
             viewModel.getShopFromServerGraphQL(getContext());
@@ -133,22 +132,18 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
             if (info != null) {
                 Gson g = new Gson();
                 UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
-                if (userProfile.coin > 0) {
-                    String sabayCoin = "<b>" + userProfile.toSabayCoin() + "</b> ";
-                    mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
-                }
-                if (userProfile.gold > 0) {
-                    String sabayGold = "<b>" + userProfile.toSabayGold() + "</b> ";
-                    mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
-                    mViewBinding.deviderBalance.setVisibility(userProfile.coin > 0 ? View.VISIBLE : View.GONE);
-                } else {
-                    mViewBinding.tvSabayGoldBalance.setVisibility(View.GONE);
-                    mViewBinding.deviderBalance.setVisibility(View.GONE);
-                }
-                if (userProfile.gold > 0 || userProfile.coin > 0) {
-                    mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
-                } else {
-                    mViewBinding.sabayBalance.setVisibility(View.GONE);
+                mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), userProfile.persona.mysabayUserID));
+                mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
+                for (Wallet wallet: userProfile.wallet) {
+                    LogUtil.info("Balance", wallet.balance + "" + wallet.assetCode);
+                  if(wallet.assetCode.equals("SC")) {
+                      String sabayCoin = "<b>" + wallet.toSabayCoin() + "</b>";
+                      mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
+                  } else if (wallet.assetCode.equals("SG")) {
+                      String sabayGold = "<b>" + wallet.toSabayGold() + "</b>";
+                      mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
+                      mViewBinding.deviderBalance.setVisibility(wallet.balance > 0 ? View.VISIBLE : View.GONE);
+                  }
                 }
             } else {
                 MessageUtil.displayDialog(getActivity(), getString(R.string.msg_can_not_connect_server));

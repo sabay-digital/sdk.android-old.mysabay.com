@@ -10,7 +10,7 @@ public class RSA {
 
     public static String sha256String(String source) {
         byte[] hash = null;
-        String hashCode = null;// w  ww  .  j  a va 2 s.c  o m
+        String hashCode = null;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             hash = digest.digest(source.getBytes());

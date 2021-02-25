@@ -49,9 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 });
         });
 
-        mViewBinding.showPaymentPreAuth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        mViewBinding.showPaymentPreAuth.setOnClickListener(v-> {
                 MySabaySDK.getInstance().showStoreView(new PaymentListener() {
                     @Override
                     public void purchaseSuccess(SubscribePayment data) {
@@ -63,9 +61,10 @@ public class MainActivity extends AppCompatActivity {
                             LogUtil.info("Profile balance gold", new Gson().toJson(receipt));
                             MessageUtil.displayDialog(v.getContext(), new Gson().toJson(data.data));
                         } else if (data.getType().equals(Globals.MY_SABAY)) {
+                            LogUtil.info("Error", data.toString());
                             PaymentResponseItem dataPayment = (PaymentResponseItem) data.data;
                             LogUtil.info("data", new Gson().toJson(data.data));
-                            LogUtil.info("satus",  dataPayment.status.toString());
+                            LogUtil.info("status",  dataPayment.status.toString());
                             LogUtil.info("amount",  dataPayment.amount);
                             LogUtil.info("hash",  dataPayment.hash);
                             LogUtil.info("PackageId",  dataPayment.packageId);
@@ -87,10 +86,9 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void purchaseFailed(Object dataError) {
-                        MessageUtil.displayToast(v.getContext(), "error = " + dataError);
+                        MessageUtil.displayToast(v.getContext(), dataError + "");
                     }
                 });
-            }
         });
 
         mViewBinding.btnGetToken.setOnClickListener(new View.OnClickListener() {
@@ -149,10 +147,10 @@ public class MainActivity extends AppCompatActivity {
                         if (info != null) {
                             UserProfileItem userProfile = new Gson().fromJson(info, UserProfileItem.class);
                             LogUtil.info("Profile userId", userProfile.userID.toString());
-                            LogUtil.info("Profile name", userProfile.profileName);
+                            LogUtil.info("Profile name", userProfile.givenName);
                             LogUtil.info("Profile localPayEnabled", userProfile.localPayEnabled.toString());
-                            LogUtil.info("Profile coin balance", userProfile.coin.toString());
-                            LogUtil.info("Profile gold balance", userProfile.gold.toString());
+//                            LogUtil.info("Profile coin balance", userProfile.wallet.balance.toString());
+//                            LogUtil.info("Profile gold balance", userProfile.wallet.balance.toString());
                             LogUtil.info("Profile persona", userProfile.persona.toString());
                             MessageUtil.displayDialog(v.getContext(), info);
                         } else {

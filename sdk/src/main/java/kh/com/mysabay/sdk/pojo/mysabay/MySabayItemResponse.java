@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Created by Tan Phirum on 01/05/21
+ * Created by Chhoeun Songheng on 01/05/21
  * Gmail chhoeunsongheng@gmail.com
  */
 public class MySabayItemResponse implements Parcelable {
@@ -47,12 +47,6 @@ public class MySabayItemResponse implements Parcelable {
     protected MySabayItemResponse(@NotNull Parcel in) {
         this.type = ((String) in.readValue((String.class.getClassLoader())));
         in.readList(this.providers, (ProviderResponse.class.getClassLoader()));
-    }
-
-    /**
-     * No args constructor for use in serialization
-     */
-    public MySabayItemResponse() {
     }
 
     /**

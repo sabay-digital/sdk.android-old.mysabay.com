@@ -7,8 +7,10 @@ import com.apollographql.apollo.ApolloClient;
 import com.apollographql.apollo.api.Response;
 import com.apollographql.apollo.exception.ApolloException;
 import com.apollographql.apollo.request.RequestHeaders;
+import com.mysabay.sdk.CheckExistingLoginQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
 import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
+import com.mysabay.sdk.GetMatomoTrackingIdQuery;
 import com.mysabay.sdk.LoginWithFacebookMutation;
 import com.mysabay.sdk.LoginWithMySabayMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
@@ -16,6 +18,7 @@ import com.mysabay.sdk.SendCreateMySabayWithPhoneOTPMutation;
 import com.mysabay.sdk.UserProfileQuery;
 import com.mysabay.sdk.VerifyMySabayMutation;
 import com.mysabay.sdk.VerifyOtpCodMutation;
+import com.mysabay.sdk.type.Sso_LoginProviders;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -33,8 +36,8 @@ public class UserService extends ViewModel {
         this.apolloClient = apolloClient;
     }
 
-    public void loginWithPhoneNumber(String phone, String dialCode, DataCallback<LoginWithPhoneMutation.Sso_loginPhone> dataCallback) {
-        LoginWithPhoneMutation loginWithPhoneMutation = new LoginWithPhoneMutation(dialCode + phone);
+    public void loginWithPhoneNumber(String phoneNumber, DataCallback<LoginWithPhoneMutation.Sso_loginPhone> dataCallback) {
+        LoginWithPhoneMutation loginWithPhoneMutation = new LoginWithPhoneMutation(phoneNumber);
         apolloClient.mutate(loginWithPhoneMutation).enqueue(new ApolloCall.Callback<LoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginWithPhoneMutation.Data> response) {
@@ -107,7 +110,7 @@ public class UserService extends ViewModel {
         });
     }
 
-    public void verifyMySabayAccount(String username, String password, DataCallback<VerifyMySabayMutation.Sso_verifyMySabay> dataCallback) {
+    public void verifyMySabay(String username, String password, DataCallback<VerifyMySabayMutation.Sso_verifyMySabay> dataCallback) {
         apolloClient.mutate(new VerifyMySabayMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<VerifyMySabayMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<VerifyMySabayMutation.Data> response) {
@@ -220,4 +223,39 @@ public class UserService extends ViewModel {
         });
     }
 
+    public void checkExistingMySabayUsername(String username, DataCallback<CheckExistingLoginQuery.Data> dataCallback) {
+        apolloClient.query(new CheckExistingLoginQuery(username, Sso_LoginProviders.SABAY)).enqueue(new ApolloCall.Callback<CheckExistingLoginQuery.Data>() {
+            @Override
+            public void onResponse(@NotNull Response<CheckExistingLoginQuery.Data> response) {
+                if (response.getData() != null) {
+                    dataCallback.onSuccess(response.getData());
+                } else {
+                    dataCallback.onFailed("check existing MySabay username failed");
+                }
+            }
+
+            @Override
+            public void onFailure(@NotNull ApolloException e) {
+                dataCallback.onFailed(e);
+            }
+        });
+    }
+
+    public void getTrackingID(String serviceCode, DataCallback<GetMatomoTrackingIdQuery.Sso_service> dataCallback) {
+        apolloClient.query(new GetMatomoTrackingIdQuery(serviceCode)).enqueue(new ApolloCall.Callback<GetMatomoTrackingIdQuery.Data>() {
+            @Override
+            public void onResponse(@NotNull Response<GetMatomoTrackingIdQuery.Data> response) {
+                if(response.getErrors() == null) {
+                    dataCallback.onSuccess(response.getData().sso_service().get(0));
+                } else {
+                    dataCallback.onFailed("Get Matomo Tracking Id failed");
+                }
+            }
+
+            @Override
+            public void onFailure(@NotNull ApolloException e) {
+                dataCallback.onFailed(e);
+            }
+        });
+    }
 }

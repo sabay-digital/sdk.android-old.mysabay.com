@@ -61,31 +61,20 @@ query verifyToken($accessToken: String!) {
 query userProfile {
   sso_userProfile {
     userID
-    profileName
     localPayEnabled
-    coin
-    gold
+    givenName
     status
+    wallet {
+      balance
+      assetCode
+    }
     persona {
-        uuid
+      uuid
+      serviceCode
+      mysabayUserID
     }
   }
 }
-
-query persona {
-  sso_userPersona {
-    uuid
-    serviceCode
-    mysabayUserID
-    serviceUserID
-    serviceDisplayName
-    status
-    lastLogin
-    createdAt
-    updatedAt
-  }
-}
-
 
 query checkExistingLogin($login: String!, $provider: sso_LoginProviders!) {
   sso_existingLogin(login: $login, provider: $provider)
@@ -107,7 +96,7 @@ mutation sendCreateMySabayWithPhoneOTP($phoneNumber: String!) {
   }
 }
 
-mutation  createMySabayLoginWithPhone($username: String!, $password: String!, $phoneNumber: String!, $otpCode: String!) {
+mutation createMySabayLoginWithPhone($username: String!, $password: String!, $phoneNumber: String!, $otpCode: String!) {
   sso_createMySabayLoginWithPhone(username: $username, password: $password, phoneNumber: $phoneNumber, otpCode: $otpCode) {
     accessToken
     refreshToken
@@ -115,4 +104,9 @@ mutation  createMySabayLoginWithPhone($username: String!, $password: String!, $p
   }
 }
 
+query getMatomoTrackingId($serviceCode: String!) {
+  sso_service(serviceCode: $serviceCode) {
+    matomoTrackingID
+  }
+}
 

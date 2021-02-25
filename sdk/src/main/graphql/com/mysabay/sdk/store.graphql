@@ -37,3 +37,47 @@ query checkout_getPaymentServiceProviderForProduct($productId: ID!) {
         }
     }
 }
+
+mutation createInvoice($input: invoice_CreateInvoiceInput) {
+    invoice_createInvoice(input: $input) {
+        status
+        invoice {
+            id
+            userId
+            items
+            amount
+            notes
+            serviceCode
+            ssnTxHash
+            paymentProvider
+            status
+        }
+    }
+}
+
+query getPaymentDetail($id: ID!, $paymentAddress: String!) {
+    checkout_getPaymentServiceProviderDetailForPayment(id: $id, paymentAddress: $paymentAddress) {
+        id
+        name
+        code
+        ssnAccountPk
+        status
+        issueCurrencies
+        requestUrl
+        hash
+        signature
+        publicKey
+        additionalBody
+        additionalHeader
+    }
+}
+
+query getInvoiceById($id: ID!){
+    invoice_getInvoiceById(id: $id) {
+        items
+        paymentProvider
+        ssnTxHash
+        status
+        currency
+    }
+}

@@ -81,7 +81,6 @@ public class VerifiedFragment extends BaseFragment<FragmentVerifiedBinding, User
         viewModel.getResponseLogin().observe(this, item -> {
             if (item != null && item.verifyCode > 0)
                 MessageUtil.displayDialog(getContext(), String.valueOf(item.verifyCode), colorCodeBackground());
-//                mViewBinding.edtVerifyCode.setText(String.valueOf(item.data.verifyCode));
         });
         startTimer();
     }
@@ -107,8 +106,7 @@ public class VerifiedFragment extends BaseFragment<FragmentVerifiedBinding, User
                     } else {
                         KeyboardUtils.hideKeyboard(getContext(), mViewBinding.edtVerifyCode);
                         mViewBinding.edtVerifyCode.setError(true);
-                        mViewBinding.edtVerifyCode.postDelayed(() ->
-                                mViewBinding.edtVerifyCode.setText(null), 1000);
+                        mViewBinding.edtVerifyCode.postDelayed(() -> mViewBinding.edtVerifyCode.setText(null), 1000);
                     }
                 } else {
                     MySabaySDK.getInstance().trackEvents(getContext(), "sdk-" + Constant.sso, Constant.tap, "verify-otp");

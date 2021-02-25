@@ -108,6 +108,8 @@ dependencies {
         exclude group: "com.android.support"
     }
 
+    implementation 'com.googlecode.json-simple:json-simple:1.1'
+
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
 
 }
