@@ -41,18 +41,21 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     private static final String EXT_KEY_PaymentResponseItem = "PaymentResponseItem";
     public static final String EXT_KEY_DATA = "EXT_KEY_DATA";
     public static final String PSP_CODE = "EXT_PSP_CODE";
+    public static final String PAYMENT_ADDRESS = "PAYMENT_ADDRESS";
 
     private ShopItem mData;
     private Data mPaymentResponseItem;
     private String pspCode;
+    private String paymentAddress;
     private boolean isFinished = false;
 
     @NotNull
-    public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String pspCode) {
+    public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String pspCode, String paymentAddress) {
         Bundle args = new Bundle();
         args.putParcelable(EXT_KEY_PaymentResponseItem, item);
         args.putParcelable(EXT_KEY_DATA, shopItem);
         args.putString(PSP_CODE, pspCode);
+        args.putString(PAYMENT_ADDRESS, paymentAddress);
         BankVerifiedFm f = new BankVerifiedFm();
         f.setArguments(args);
         return f;
@@ -64,6 +67,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             mPaymentResponseItem = getArguments().getParcelable(EXT_KEY_PaymentResponseItem);
             mData = getArguments().getParcelable(EXT_KEY_DATA);
             pspCode= getArguments().getString(PSP_CODE);
+            paymentAddress = getArguments().getString(PAYMENT_ADDRESS);
         }
         setRetainInstance(true);
         super.onCreate(savedInstanceState);
@@ -138,8 +142,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             } else {
                 html = scriptFormValidate(mPaymentResponseItem);
             }
-
-            mViewBinding.wv.loadDataWithBaseURL(MySabaySDK.getInstance().storeApiUrl(), html, "text/html", "utf-8", MySabaySDK.getInstance().storeApiUrl());
+            mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl + paymentAddress, html, "text/html", "utf-8", mPaymentResponseItem.requestUrl + paymentAddress);
         }
     }
 
@@ -202,7 +205,11 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     @NotNull
     @Contract(pure = true)
     private String scriptFormValidate(@NotNull Data item) {
-        LogUtil.info("Data",  "'" + new Gson().toJson(item) + "'");
+        LogUtil.info("request url", item.requestUrl);
+        LogUtil.info("hash", item.hash);
+        LogUtil.info("signature", item.signature);
+        LogUtil.info("publicKey", item.publicKey);
+        LogUtil.info("paymentAddress", paymentAddress);
 
         return "<!DOCTYPE html>\n" +
                 "<html>\n" +
@@ -212,18 +219,14 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
                 "    <link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css\">\n" +
                 "</head>\n" +
                 "<body>\n" +
-                "    <script src=\"https://code.jquery.com/jquery-3.4.1.js\"></script>\n" +
                 "    <h1>Please Wait</h1>\n" +
-                "    <form id=\"frm\" action=\"" + item.requestUrl + "\" method=\"post\">\n" +
+                "    <form id=\"frm\" action=\"" + item.requestUrl + paymentAddress + "\" method=\"post\">\n" +
                 "        <input type=\"hidden\" name=\"hash\" value=\"" + item.hash + "\">\n" +
                 "        <input type=\"hidden\" name=\"signature\" value=\"" + item.signature + "\">\n" +
                 "        <input type=\"hidden\" name=\"public_key\" value=\"" + item.publicKey + "\">\n" +
-                "        <input type=\"hidden\" name=\"redirect\" value=\"" + item.redirect + "\">\n" +
                 "    </form>\n" +
                 "    <script>\n" +
-                "        $( document ).ready(function() {\n" +
-                "            $(\"#frm\").submit()\n" +
-                "        });\n" +
+                "       document.getElementById('frm').submit()\n" +
                 "    </script>\n" +
                 "\u200B\n" +
                 "</body>\n" +

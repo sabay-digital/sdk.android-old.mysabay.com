@@ -74,10 +74,14 @@ query getPaymentDetail($id: ID!, $paymentAddress: String!) {
 
 query getInvoiceById($id: ID!){
     invoice_getInvoiceById(id: $id) {
-        items
-        paymentProvider
         ssnTxHash
         status
         currency
+    }
+}
+
+query getExchangeRate($serviceCode: String) {
+    sso_service(serviceCode: $serviceCode) {
+        usdkhr
     }
 }

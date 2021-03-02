@@ -21,6 +21,7 @@ import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
 import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
 import com.mysabay.sdk.DeleteTokenMutation;
+import com.mysabay.sdk.GetInvoiceByIdQuery;
 import com.mysabay.sdk.GetMatomoTrackingIdQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.LoginWithMySabayMutation;
@@ -54,6 +55,7 @@ import kh.com.mysabay.sdk.di.BaseAppComponent;
 import kh.com.mysabay.sdk.di.DaggerBaseAppComponent;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.NetworkState;
+import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
 import kh.com.mysabay.sdk.pojo.login.SubscribeLogin;
 import kh.com.mysabay.sdk.pojo.payment.SubscribePayment;
 import kh.com.mysabay.sdk.ui.activity.LoginActivity;
@@ -84,7 +86,7 @@ public class MySabaySDK {
 
     @Inject
     UserService userService;
-    @Inject
+//    @Inject
     StoreService storeService;
 
     private SharedPreferences mPreferences;
@@ -428,7 +430,6 @@ public class MySabaySDK {
 
     @Subscribe
     public void onPaymentEvent(SubscribePayment event) {
-        LogUtil.info("Subscribe", event.error.toString());
         if (mPaymentListener != null) {
             if (event.data != null) {
                 mPaymentListener.purchaseSuccess(event);
@@ -526,11 +527,12 @@ public class MySabaySDK {
     }
 
     public String userApiUrl() {
-        return mSdkConfiguration.isSandBox ? "https://gateway.master.sabay.com/graphql/" : "https://user.mysabay.com/";
+        return mSdkConfiguration.isSandBox ? "http://gateway.master.sabay.com/graphql/" : "http://gateway.master.sabay.com/graphql/";
     }
 
     public String storeApiUrl() {
-        return mSdkConfiguration.isSandBox ? "https://pp.master.mysabay.com/" : "https://pp.master.mysabay.com/";
+        return mSdkConfiguration.isSandBox ? "http://pp.master.mysabay.com/" : "http://pp.master.mysabay.com/";
+//        return mSdkConfiguration.isSandBox ? "https://demo-pp.testing.ssn.digital/": "https://demo-pp.testing.ssn.digital/";
     }
 
     public String getPaymentAddress(String invoiceId) {
@@ -589,5 +591,9 @@ public class MySabaySDK {
 
     public void getMatomoTrackingId(String serviceCode, DataCallback<GetMatomoTrackingIdQuery.Sso_service> dataCallback) {
         userService.getTrackingID(serviceCode, dataCallback);
+    }
+
+    public void getInvoiceById(String token, String id, DataCallback<GetInvoiceByIdQuery.Data> dataCallback) {
+        storeService.getInvoiceById(token, id, dataCallback);
     }
 }

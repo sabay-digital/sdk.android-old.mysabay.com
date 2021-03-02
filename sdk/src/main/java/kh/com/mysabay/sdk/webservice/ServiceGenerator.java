@@ -30,7 +30,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
  * Created by phirum on 11/4/15.
  */
 @Module
-public class ServiceGenerator {
+public class   ServiceGenerator {
     private static String TAG = ServiceGenerator.class.getName();
 
     public static final String CONNECT_TIMEOUT = "CONNECT_TIMEOUT";

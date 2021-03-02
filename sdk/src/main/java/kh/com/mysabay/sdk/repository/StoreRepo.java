@@ -6,11 +6,7 @@ import javax.inject.Singleton;
 import io.reactivex.Observable;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
-import kh.com.mysabay.sdk.pojo.mysabay.MySabayItem;
-import kh.com.mysabay.sdk.pojo.payment.PaymentBody;
-import kh.com.mysabay.sdk.pojo.payment.PaymentBodyPreAuth;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
-import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.ThirdPartyItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.ResponseItem;
 import kh.com.mysabay.sdk.webservice.api.StoreApi;
@@ -30,21 +26,6 @@ public class StoreRepo implements StoreApi {
     }
 
     @Override
-    public Observable<ShopItem> getShopItem(String appSecret, String token) {
-        return storeApi.getShopItem(appSecret, "Bearer " + token);
-    }
-
-//    @Override
-//    public Observable<MySabayItem> getMySabayCheckout(String appSecret, String token, String uuid) {
-//        return this.storeApi.getMySabayCheckout(appSecret, "Bearer " + token, uuid);
-//    }
-
-    @Override
-    public Observable<MySabayItem> getMySabayCheckout(String appSecret, String token, String packageCode) {
-        return this.storeApi.getMySabayCheckout(appSecret, "Bearer " + token, packageCode);
-    }
-
-    @Override
     public Observable<ThirdPartyItem> get3PartyCheckout(String appSecret, String token, String uuid) {
         return this.storeApi.get3PartyCheckout(appSecret, "Bearer " + token, uuid);
     }
@@ -55,12 +36,12 @@ public class StoreRepo implements StoreApi {
     }
 
     @Override
-    public Observable<PaymentResponseItem> postToPaid(String token, String hash, String signature, String publicKey, String payment, String paymentAddress) {
-        return this.storeApi.postToPaid("Bearer " + token, hash, signature, publicKey, payment , paymentAddress);
+    public Observable<PaymentResponseItem> postToPaid(String url, String token, String hash, String signature, String publicKey, String paymentAddress) {
+        return this.storeApi.postToPaid(url, "Bearer " + token, hash, signature, publicKey, paymentAddress);
     }
 
     @Override
-    public Observable<ResponseItem> postToChargeOneTime(String token, String hash, String signature, String publicKey, String payment, String paymentAddress) {
-        return this.storeApi.postToChargeOneTime("Bearer " + token, hash, signature, publicKey, payment , paymentAddress);
+    public Observable<ResponseItem> postToChargeOneTime(String url, String token, String hash, String signature, String publicKey, String paymentAddress) {
+        return this.storeApi.postToChargeOneTime(url, "Bearer " + token, hash, signature, publicKey, paymentAddress);
     }
 }

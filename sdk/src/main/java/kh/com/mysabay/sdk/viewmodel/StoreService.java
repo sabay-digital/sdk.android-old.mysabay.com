@@ -12,6 +12,7 @@ import com.apollographql.apollo.request.RequestHeaders;
 import com.google.gson.Gson;
 import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.CreateInvoiceMutation;
+import com.mysabay.sdk.GetInvoiceByIdQuery;
 import com.mysabay.sdk.GetPaymentDetailQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.type.Invoice_CreateInvoiceInput;
@@ -25,11 +26,13 @@ import java.util.List;
 
 import javax.inject.Inject;
 import kh.com.mysabay.sdk.callback.DataCallback;
+import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.ResponseItem;
 import kh.com.mysabay.sdk.repository.StoreRepo;
 import kh.com.mysabay.sdk.utils.AppRxSchedulers;
+import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.webservice.AbstractDisposableObs;
 
 public class StoreService extends ViewModel {
@@ -165,12 +168,12 @@ public class StoreService extends ViewModel {
     }
 
     public void postToChargePreAuth(Context context, String token, String hash, String signature, String publicKey, String payment, String paymentAddress, DataCallback<ResponseItem> callback) {
-        storeRepo.postToPaid(token, hash, signature, publicKey, payment, paymentAddress).subscribeOn(appRxSchedulers.io())
+        storeRepo.postToPaid("", token, hash, signature, publicKey, payment).subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
                 .subscribe(new AbstractDisposableObs<PaymentResponseItem>(context) {
                     @Override
                     protected void onSuccess(PaymentResponseItem response) {
-                        if (response.status == 200) {
+                        if (response != null) {
 //                            callback.onSuccess(response);
                         } else
                             callback.onFailed("");
@@ -181,5 +184,29 @@ public class StoreService extends ViewModel {
                         callback.onFailed("");
                     }
                 });
+    }
+
+    public void getInvoiceById(String token, String invoiceId, DataCallback<GetInvoiceByIdQuery.Data> callback) {
+        apolloClient.query(new GetInvoiceByIdQuery(invoiceId)).toBuilder()
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .build()
+                .enqueue(new ApolloCall.Callback<GetInvoiceByIdQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<GetInvoiceByIdQuery.Data> response) {
+                        if (response.getErrors() != null) {
+                            callback.onFailed(response.getErrors());
+                        } else {
+                            if (response.getData() != null) {
+                                callback.onSuccess(response.getData());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        callback.onFailed("Get invoice by id failed");
+                    }
+                });
+
     }
 }

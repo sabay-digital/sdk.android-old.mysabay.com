@@ -152,6 +152,6 @@ public class ShopItem implements Parcelable {
     }
 
     public String toUSDPrice() {
-        return "$ " + this.salePrice;
+        return String.format("%s %s", "$", this.salePrice);
     }
 }

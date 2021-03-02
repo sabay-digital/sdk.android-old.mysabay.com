@@ -61,17 +61,13 @@ public class MainActivity extends AppCompatActivity {
                             LogUtil.info("Profile balance gold", new Gson().toJson(receipt));
                             MessageUtil.displayDialog(v.getContext(), new Gson().toJson(data.data));
                         } else if (data.getType().equals(Globals.MY_SABAY)) {
-                            LogUtil.info("Error", data.toString());
-                            PaymentResponseItem dataPayment = (PaymentResponseItem) data.data;
-                            LogUtil.info("data", new Gson().toJson(data.data));
-                            LogUtil.info("status",  dataPayment.status.toString());
-                            LogUtil.info("amount",  dataPayment.amount);
-                            LogUtil.info("hash",  dataPayment.hash);
-                            LogUtil.info("PackageId",  dataPayment.packageId);
-                            LogUtil.info("message",  dataPayment.message);
-                            LogUtil.info("pspAssetCode",  dataPayment.pspAssetCode);
-                            LogUtil.info("label",  dataPayment.label);
-                            MessageUtil.displayDialog(v.getContext(), new Gson().toJson(data.data));
+                            if (data.data != null) {
+                                PaymentResponseItem dataPayment = (PaymentResponseItem) data.data;
+                                LogUtil.info("data", new Gson().toJson(data.data));
+                                MessageUtil.displayDialog(v.getContext(), new Gson().toJson(data.data));
+                            } else {
+                                LogUtil.info("Error", data.error.toString());
+                            }
                         } else {
                             Data dataPayment = (Data) data.data;
                             LogUtil.info(data.getType(), new Gson().toJson(data.data));
@@ -80,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
                             LogUtil.info("packageId",  dataPayment.packageId);
                             LogUtil.info("assetCode", dataPayment.assetCode);
                             MessageUtil.displayDialog(v.getContext(), new Gson().toJson(data.data));
-
                         }
                     }
 
