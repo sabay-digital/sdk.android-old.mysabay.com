@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -23,12 +25,15 @@ import kh.com.mysabay.sdk.BuildConfig;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.base.BaseFragment;
+import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.PartialBankProviderVerifiedBinding;
+import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
 import kh.com.mysabay.sdk.pojo.onetime.OneTime;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.LogUtil;
+import kh.com.mysabay.sdk.utils.MessageUtil;
 import kh.com.mysabay.sdk.viewmodel.StoreApiVM;
 
 /**
@@ -48,6 +53,15 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     private String pspCode;
     private String paymentAddress;
     private boolean isFinished = false;
+    private CountDownTimer mCountDownTimer;
+    private boolean mTimerRunning;
+
+    private static final long START_TIME_IN_MILLIS = 60000;
+    private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
+    private long mEndTime;
+    Handler handler = new Handler();
+    Runnable runnable;
+    int delay = 5000;
 
     @NotNull
     public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String pspCode, String paymentAddress) {
@@ -80,6 +94,18 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacks(runnable);
+    }
+
+    @Override
     public int getLayoutId() {
         return R.layout.partial_bank_provider_verified;
     }
@@ -88,6 +114,8 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     @Override
     public void initializeObjects(View v, Bundle args) {
         viewModel.setShopItemSelected(mData);
+        startTimer();
+        checkInvoiceIdTimeout();
         if (args != null) {
             mViewBinding.wv.restoreState(args);
         } else {
@@ -199,6 +227,71 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mViewBinding.wv.saveState(outState);
+
+    }
+
+//    getInvoiceId("6035c9ad8e407b00189c7d95");
+
+    public void getInvoiceId(String id) {
+        viewModel.getInvoiceById(getContext(), id, new DataCallback<InvoiceItemResponse>() {
+            @Override
+            public void onSuccess(InvoiceItemResponse response) {
+                LogUtil.info("Invoice Response", response.toString());
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                LogUtil.info("Error", error.toString());
+            }
+        });
+    }
+
+    public void checkInvoiceIdTimeout() {
+        handler.postDelayed(runnable = new Runnable() {
+            public void run() {
+                if(mTimerRunning) {
+                    LogUtil.info("Called", "in 5 seconds");
+                    getInvoiceId("6035c9ad8e407b00189c7d95");
+                    handler.postDelayed(runnable, delay);
+                } else {
+                    handler.removeCallbacks(runnable);
+                }
+            }
+        }, delay);
+    }
+
+    private void startTimer() {
+        mEndTime = System.currentTimeMillis() + mTimeLeftInMillis;
+        mCountDownTimer = new CountDownTimer(mTimeLeftInMillis, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                mTimeLeftInMillis = millisUntilFinished;
+
+                updateCountDownText();
+            }
+
+            @Override
+            public void onFinish() {
+                mTimerRunning = false;
+                updateButtons();
+            }
+        }.start();
+        mTimerRunning = true;
+        updateButtons();
+    }
+
+    private void updateCountDownText() {
+        if (mTimerRunning) {
+            mViewBinding.tvTimer.setText("You have 1 minute to purchase " + mTimeLeftInMillis / 1000 + "s");
+        } else {
+            mViewBinding.tvTimer.setText("Didn’t get OTP code? request again in ");
+        }
+    }
+
+    private void updateButtons() {
+        if (!mTimerRunning) {
+            getActivity().finish();
+        }
 
     }
 

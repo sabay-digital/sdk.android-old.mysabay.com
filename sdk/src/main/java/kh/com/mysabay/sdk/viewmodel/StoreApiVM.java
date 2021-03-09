@@ -26,8 +26,8 @@ import com.mysabay.sdk.type.Invoice_CreateInvoiceInput;
 import com.mysabay.sdk.type.Store_PagerInput;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -187,6 +187,10 @@ public class StoreApiVM extends ViewModel {
         return this.mDataSelected;
     }
 
+    /**
+     * @param context
+     * @param itemId
+     */
     public void  getMySabayCheckoutWithGraphQL(@NotNull Context context, String itemId) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
         apolloClient.query(new Checkout_getPaymentServiceProviderForProductQuery(itemId)).enqueue(new ApolloCall.Callback<Checkout_getPaymentServiceProviderForProductQuery.Data>() {
@@ -235,16 +239,22 @@ public class StoreApiVM extends ViewModel {
     /**
      * @param context
      * @param shopItem
+     * @param provider
+     * @param type
+     * @param exChangeRate
      */
     public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, int exChangeRate) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
-        Object item = new ShopItem(shopItem.id, shopItem.properties);
+
         List<Object> items = new ArrayList<>();
-        String json = new Gson().toJson(item);
+        JSONObject jsonObject=new JSONObject();
         JSONParser parser = new JSONParser();
         try {
-            items.add(parser.parse(json));
-        } catch (ParseException e) {
+            jsonObject.put("package_id",provider.packageId);
+            jsonObject.put("displayName", shopItem.properties.displayName);
+            jsonObject.put("packageCode", shopItem.properties.packageCode);
+            items.add(parser.parse(jsonObject.toString()));
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -254,15 +264,10 @@ public class StoreApiVM extends ViewModel {
         if (type.equals(Globals.MY_SABAY_PROVIDER)) {
             if (provider.issueCurrencies.get(0).equals("SG")) {
                 priceOfItem = Math.ceil(amount/100);
-                LogUtil.info("amount in sg", amount + "");
             } else if (provider.issueCurrencies.get(0).equals("SC")) {
                 priceOfItem = Math.ceil(amount/100);
-                LogUtil.info("amount in sc", priceOfItem + "");
             }
         }
-
-        LogUtil.info("priceOfItem", priceOfItem + "");
-
         Invoice_CreateInvoiceInput obj = Invoice_CreateInvoiceInput.builder()
                 .items(items)
                 .amount(priceOfItem)
@@ -272,6 +277,7 @@ public class StoreApiVM extends ViewModel {
                 .paymentProvider("")
                 .build();
         Input<Invoice_CreateInvoiceInput> input = Input.fromNullable(obj);
+
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
         apolloClient.mutate(new CreateInvoiceMutation(input)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
@@ -302,6 +308,13 @@ public class StoreApiVM extends ViewModel {
                 });
     }
 
+    /**
+     * @param context
+     * @param shopItem
+     * @param id
+     * @param invoiceId
+     * @param type
+     */
     public void getPaymentDetail(StoreActivity context, ShopItem shopItem, String id, String invoiceId, String type) {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
@@ -386,6 +399,7 @@ public class StoreApiVM extends ViewModel {
 
         for (ProviderResponse item : mySabayItem.get(0).providers) {
             if (item.type.equals(Globals.IAP_PROVIDER)) {
+                LogUtil.info("Package Id", item.packageId);
                 provider = item;
             }
         }
@@ -435,6 +449,12 @@ public class StoreApiVM extends ViewModel {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
         if (getMySabayProvider().getValue() == null) return;
 
+        LogUtil.info("requestUrl", data.requestUrl);
+        LogUtil.info("hash", data.hash);
+        LogUtil.info("signature", data.signature);
+        LogUtil.info("publicKey", data.publicKey);
+        LogUtil.info("paymentAddress", paymentAddress);
+
         storeRepo.postToPaid(data.requestUrl + paymentAddress, appItem.token, data.hash, data.signature, data.publicKey, paymentAddress).subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
                 .subscribe(new AbstractDisposableObs<PaymentResponseItem>(context, _networkState) {
@@ -453,8 +473,6 @@ public class StoreApiVM extends ViewModel {
                     }
                 });
     }
-
-
 
     public void postToPaidWithBank(StoreActivity context, Data data, String paymentAddress) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
@@ -496,7 +514,6 @@ public class StoreApiVM extends ViewModel {
                         if (response.getData().invoice_getInvoiceById() != null) {
                             InvoiceItemResponse invoice = gson.fromJson(gson.toJson(response.getData().invoice_getInvoiceById()), InvoiceItemResponse.class);
                             callback.onSuccess(invoice);
-                            LogUtil.info("response", invoice.toString());
                         } else {
                             callback.onFailed("Get invoice by id failed");
                         }

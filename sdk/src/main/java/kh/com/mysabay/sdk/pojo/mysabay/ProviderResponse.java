@@ -53,6 +53,9 @@ public class ProviderResponse implements Parcelable {
     @SerializedName("additionalBody")
     @Expose
     public Object additionalBody;
+    @SerializedName("packageId")
+    @Expose
+    public String packageId;
 
     public final static Creator<ProviderResponse> CREATOR = new Creator<ProviderResponse>() {
 
@@ -80,6 +83,7 @@ public class ProviderResponse implements Parcelable {
         this.info = ((Info) in.readValue((Info.class.getClassLoader())));
         this.label = ((String) in.readValue((String.class.getClassLoader())));
         this.value = ((Double) in.readValue((Double.class.getClassLoader())));
+        this.packageId = ((String) in.readValue((String.class.getClassLoader())));
         in.readList(this.issueCurrencies, (String.class.getClassLoader()));
     }
 
@@ -158,16 +162,22 @@ public class ProviderResponse implements Parcelable {
         return this;
     }
 
+    public ProviderResponse withPackageId(String packageId){
+        this.packageId = packageId;
+        return this;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("name", name).append("code", code)
                 .append("ssnAccountPk", ssnAccountPk).append("type", type).append("info", info)
-                .append("label", label).append("value", value).append("issueCurrencies", issueCurrencies).toString();
+                .append("packageId", packageId).append("label", label).append("value", value)
+                .append("issueCurrencies", issueCurrencies).toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(id).append(name).append(code).append(ssnAccountPk).append(type).append(info)
+        return new HashCodeBuilder().append(id).append(packageId).append(name).append(code).append(ssnAccountPk).append(type).append(info)
                 .append(label).append(value).append(issueCurrencies).toHashCode();
     }
 
@@ -181,13 +191,14 @@ public class ProviderResponse implements Parcelable {
             return false;
         }
         ProviderResponse rhs = ((ProviderResponse) other);
-        return new EqualsBuilder().append(id, rhs.id).append(name, rhs.name).append(code, rhs.code)
+        return new EqualsBuilder().append(id, rhs.id).append(packageId, rhs.packageId).append(name, rhs.name).append(code, rhs.code)
                 .append(ssnAccountPk, rhs.ssnAccountPk).append(type, rhs.type).append(info, rhs.info)
                 .append(label, rhs.label).append(value, rhs.value).append(issueCurrencies, rhs.issueCurrencies).isEquals();
     }
 
     public void writeToParcel(@NotNull Parcel dest, int flags) {
         dest.writeValue(id);
+        dest.writeValue(packageId);
         dest.writeValue(name);
         dest.writeValue(code);
         dest.writeValue(ssnAccountPk);

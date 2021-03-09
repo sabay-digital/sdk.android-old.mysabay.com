@@ -33,6 +33,7 @@ query checkout_getPaymentServiceProviderForProduct($productId: ID!) {
                 label
                 value
                 issueCurrencies
+                packageId
             }
         }
     }

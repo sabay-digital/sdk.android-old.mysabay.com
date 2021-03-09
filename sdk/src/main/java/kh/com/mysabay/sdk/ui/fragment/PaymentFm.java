@@ -8,7 +8,6 @@ import android.content.pm.ActivityInfo;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -90,10 +89,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     public static final String PURCHASE_KEY= "purchase";
     private double amountToPaid;
 
-    Handler handler = new Handler();
-    Runnable runnable;
-    int delay = 5000;
-
     @NotNull
     @Contract("_ -> new")
     public static PaymentFm newInstance(ShopItem item) {
@@ -143,7 +138,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                         amountToPaid = Math.ceil((mData.salePrice * exChangeRate) / 100);
                     }
                 });
-
         mViewBinding.btnPay.setEnabled(false);
         mViewBinding.btnPay.setBackgroundResource(R.color.secondary);
         viewModel.getItemSelected().observe(this, data -> {
@@ -154,7 +148,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.toUSDPrice()));
             }
         });
-
         viewModel.getThirdPartyProviders().observe(this, data -> {
             if (data.size() > 0)
                 showBankProviders(getContext(), data);
@@ -241,26 +234,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
             }
         });
 
-        mViewBinding.btnPreAuthPay.setOnClickListener(v -> {
-            checkedId[0] = v.getId();
-            ShopItem data = viewModel.getItemSelected().getValue();
-            mViewBinding.tvTotal.setText(data.toUSDPrice());
-            mViewBinding.btnPay.setText(String.format(getString(R.string.pay), data.toUSDPrice()));
-            mViewBinding.btnPay.setEnabled(true);
-            mViewBinding.btnPay.setBackgroundResource(R.color.colorYellow);
-            mViewBinding.btnPreAuthPay.setTextColor(textColorCode());
-            mViewBinding.btnPreAuthPay.setBackgroundResource(R.drawable.shape_button_primary);
-            mViewBinding.tvMySabay.setTextColor(0xFFE3B852);
-            mViewBinding.btnMysabay.setBackgroundResource(R.drawable.payment_button);
-            mViewBinding.tvInAppPurchase.setTextColor(0xFFE3B852);
-            mViewBinding.btnInAppPurchase.setBackgroundResource(R.drawable.payment_button);
-            mViewBinding.lblInAppPurchase.setTextColor(0xFF828181);
-            mViewBinding.tvThirdBankProvider.setTextColor(0xFFE3B852);
-            mViewBinding.btnThirdBankProvider.setBackgroundResource(R.drawable.payment_button);
-            mViewBinding.imgOtherPaymentLogo.setImageResource(R.mipmap.other_payment_option);
-            mViewBinding.btnLabel.setTextColor(0xFF828181);
-        });
-
         mViewBinding.btnThirdBankProvider.setOnClickListener(v -> {
             checkedId[0] = v.getId();
             ShopItem data = viewModel.getItemSelected().getValue();
@@ -287,7 +260,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 ProviderResponse data =  viewModel.getInAppPurchaseProvider(v.getContext());
                 if (viewModel.getItemSelected().getValue() != null) {
 //                    if (!BuildConfig.DEBUG)
-                        PURCHASE_ID = data.id;
+//                        PURCHASE_ID = data.id;
                         purchase(v, PURCHASE_ID);
                 } else
                     MessageUtil.displayDialog(v.getContext(), "Sorry your device not support in app purchase");
@@ -416,7 +389,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
-                if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK){
+                if(billingResult.getResponseCode()== BillingClient.BillingResponseCode.OK){
                     Purchase.PurchasesResult queryPurchase = billingClient.queryPurchases(INAPP);
                     List<Purchase> queryPurchases = queryPurchase.getPurchasesList();
                     if(queryPurchases!=null && queryPurchases.size()>0){
@@ -488,31 +461,31 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
     void handlePurchases(List<Purchase>  purchases) {
         for(Purchase purchase:purchases) {
-            if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
-                MessageUtil.displayDialog(getContext(), "Invalid Purchase");
-                return;
-            }
-
-            if (!purchase.isAcknowledged()) {
-                handlePurchase(purchase);
-            }
-
-            if (purchase != null && StringUtils.equals(purchase.getSku(), PURCHASE_ID)) {
-                try {
-                    GoogleVerifyBody googleVerifyBody = new GoogleVerifyBody();
-                    ReceiptBody receiptBody = new ReceiptBody();
-                    receiptBody.withSignature(purchase.getSignature());
-                    DataBody dataBody = new DataBody(purchase.getOrderId(), purchase.getPackageName(), purchase.getSku(),
-                            purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
-                    receiptBody.withData(dataBody);
-                    googleVerifyBody.withReceipt(receiptBody);
-                    viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (!verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
+                    MessageUtil.displayDialog(getContext(),"Purchase is invalid");
+                    return;
                 }
 
-                break;
-            }
+                if (!purchase.isAcknowledged()) {
+                    handlePurchase(purchase);
+                }
+
+                if (purchase != null && StringUtils.equals(purchase.getSku(), PURCHASE_ID)) {
+                    try {
+                        GoogleVerifyBody googleVerifyBody = new GoogleVerifyBody();
+                        ReceiptBody receiptBody = new ReceiptBody();
+                        receiptBody.withSignature(purchase.getSignature());
+                        DataBody dataBody = new DataBody(purchase.getOrderId(), purchase.getPackageName(), purchase.getSku(),
+                                purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
+                        receiptBody.withData(dataBody);
+                        googleVerifyBody.withReceipt(receiptBody);
+                        viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    break;
+                }
         }
     }
 
@@ -521,17 +494,18 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 ConsumeParams.newBuilder()
                         .setPurchaseToken(purchase.getPurchaseToken())
                         .build();
-
-        ConsumeResponseListener listener = new ConsumeResponseListener() {
-            @Override
-            public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    LogUtil.info("Consume Purchase", "consume");
-                }
-            }
-        };
         billingClient.consumeAsync(consumeParams, listener);
     }
+
+    ConsumeResponseListener listener = new ConsumeResponseListener() {
+        @Override
+        public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                LogUtil.info("Consume Purchase", "consume");
+                savePurchaseValueToPref(true);
+            }
+        }
+    };
 
     private boolean verifyValidSignature(String signedData, String signature) {
         try {
@@ -555,8 +529,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     @Override
     public void onDestroy() {
         super.onDestroy();
-        handler.removeCallbacks(runnable);
-        if(billingClient!=null){
+        if(billingClient != null){
             billingClient.endConnection();
         }
     }
@@ -564,35 +537,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(runnable);
-    }
-
-//   getInvoiceId("6035c9ad8e407b00189c7d95");
-
-//    @Override
-//    public void onResume() {
-//        handler.postDelayed(runnable = new Runnable() {
-//            public void run() {
-//                handler.postDelayed(runnable, delay);
-//                Toast.makeText(getActivity(), "This method is run every 10 seconds",
-//                        Toast.LENGTH_SHORT).show();
-//            }
-//        }, delay);
-//        super.onResume();
-//    }
-
-    public void getInvoiceId(String id) {
-        viewModel.getInvoiceById(getContext(), id, new DataCallback<InvoiceItemResponse>() {
-            @Override
-            public void onSuccess(InvoiceItemResponse response) {
-               LogUtil.info("Invoice Response", response.toString());
-            }
-
-            @Override
-            public void onFailed(Object error) {
-                LogUtil.info("Error", error.toString());
-            }
-        });
     }
 
     private void paymentProcess(Context context, ShopItem data, String type, ProviderResponse providerResponse) {
@@ -635,7 +579,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
             if (info != null) {
                 UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
                 mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), userProfile.persona.mysabayUserID));
-                mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
                 for (Wallet wallet: userProfile.wallet) {
                     if(wallet.assetCode.equals("SC")) {
                         String sabayCoin = "<b>" + wallet.toSabayCoin() + "</b>";
@@ -654,6 +597,8 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 } else {
                     mViewBinding.sabayBalance.setVisibility(View.GONE);
                 }
+            } else {
+                MessageUtil.displayDialog(getActivity(), "Error get user Profile");
             }
         });
     }
@@ -705,6 +650,13 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                                 mViewBinding.btnInAppPurchase.setVisibility(View.GONE);
                             }
                         }
+                    }
+
+                    if (item.type.equals(Globals.ONE_TIME_PROVIDER)) {
+                        if (item.providers.size() > 0)
+                            mViewBinding.btnThirdBankProvider.setVisibility(View.VISIBLE);
+                        else
+                            mViewBinding.btnThirdBankProvider.setVisibility(View.GONE);
                     }
                 }
             }

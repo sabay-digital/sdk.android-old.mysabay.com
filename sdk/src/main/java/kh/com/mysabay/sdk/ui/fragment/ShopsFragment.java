@@ -91,19 +91,18 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
         mViewBinding.viewMainShop.setBackgroundResource(colorCodeBackground());
         mViewBinding.rcv.setBackgroundResource(colorCodeBackground());
         mViewBinding.cdSabayId.setBackgroundResource(colorCodeBackground());
-//        mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), appItem.mysabayUserId.toString()));
 
         if (getContext() != null)
             viewModel.getShopFromServerGraphQL(getContext());
 
         mAdapter = new ShopAdapter(v.getContext(), item -> {
-            //    if (!BuildConfig.DEBUG)
-            if (verifyInstallerId(getActivity())) {
+//    if (!BuildConfig.DEBUG)
+//            if (verifyInstallerId(getActivity())) {
 //                PURCHASE_ID = item.packageId;
 //                purchase(v, item.packageId);
 //            } else {
 //                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
-            }
+//            }
         });
 
         mLayoutManager = new GridLayoutManager(v.getContext(), getResources().getInteger(R.integer.layout_size));
@@ -146,7 +145,7 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                   }
                 }
             } else {
-                MessageUtil.displayDialog(getActivity(), getString(R.string.msg_can_not_connect_server));
+                MessageUtil.displayDialog(getActivity(), "Error get user Profile");
             }
         });
     }

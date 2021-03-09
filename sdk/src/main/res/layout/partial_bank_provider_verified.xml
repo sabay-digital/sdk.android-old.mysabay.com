@@ -6,7 +6,13 @@
         android:id="@+id/view_web"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
+        <RelativeLayout
+            android:id="@+id/tool_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
         <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
@@ -16,10 +22,17 @@
             android:padding="3dp"
             android:visibility="gone"
             android:background="@null"
-            app:layout_constraintBottom_toTopOf="@+id/wv"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:src="@drawable/ic_back" />
+
+        <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:text="timer"
+            android:layout_centerHorizontal="true"
+            android:textSize="12sp"
+            android:textColor="@color/secondary" />
 
         <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/btn_close"
@@ -31,10 +44,9 @@
             android:padding="3dp"
             android:visibility="gone"
             android:background="@null"
-            app:layout_constraintBottom_toTopOf="@+id/wv"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:layout_alignParentEnd="true"
             android:src="@drawable/ic_close" />
+        </RelativeLayout>
 
         <WebView
             android:id="@+id/wv"
@@ -44,6 +56,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_back" />
+            app:layout_constraintTop_toBottomOf="@+id/tool_bar" />
     </android.support.constraint.ConstraintLayout>
 </layout>
