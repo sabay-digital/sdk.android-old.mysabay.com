@@ -52,6 +52,12 @@
                 android:text="Get User Info" />
 
             <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_callActivity"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Another activity" />
+
+            <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_logout"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"

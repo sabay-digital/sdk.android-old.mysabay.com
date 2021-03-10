@@ -118,15 +118,20 @@ public class MySabayCreateFragment extends BaseFragment<FmCreateMysabayBinding, 
                         if(response.sso_existingLogin()) {
                             showCheckFields(getContext(), mViewBinding.edtUsername, R.string.msg_username_already_exist);
                         } else {
-                            if (mData != null) {
-                                if (mData.equals(MySabayLoginConfirmFragment.TAG)) {
-                                    viewModel.createMySabayWithPhoneOTP(v.getContext(), username, password);
-                                    LogUtil.info("mdata", "not null");
+                            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (mData != null) {
+                                        if (mData.equals(MySabayLoginConfirmFragment.TAG)) {
+                                            viewModel.createMySabayWithPhoneOTP(v.getContext(), username, password);
+                                            LogUtil.info("mdata", "not null");
+                                        }
+                                    } else {
+                                        viewModel.createMySabayAccount(v.getContext(), username, password);
+                                        LogUtil.info("mdata", "null");
+                                    }
                                 }
-                            } else {
-                                viewModel.createMySabayAccount(v.getContext(), username, password);
-                                LogUtil.info("mdata", "null");
-                            }
+                            });
                         }
                     }
 

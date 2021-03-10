@@ -1,6 +1,9 @@
 package kh.com.mysabay.sdk.viewmodel;
 
 import android.arch.lifecycle.ViewModel;
+import android.os.Handler;
+import android.os.Looper;
+
 import com.apollographql.apollo.ApolloCall;
 import com.apollographql.apollo.ApolloClient;
 import com.apollographql.apollo.api.Input;
@@ -26,6 +29,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import kh.com.mysabay.sdk.Globals;
+import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
@@ -60,11 +64,20 @@ public class StoreService extends ViewModel {
 
                     @Override
                     public void onResponse(@NotNull Response<GetProductsByServiceCodeQuery.Data> response) {
-                        if(response.getData() == null) {
-                            callbackData.onSuccess(response.getData().store_listProduct());
-                        } else {
-                            callbackData.onFailed("Get shop from server Failed");
-                        }
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (response.getErrors() != null) {
+                                    callbackData.onFailed(response.getErrors().get(0).getMessage());
+                                } else {
+                                    if (response.getData() != null) {
+                                        callbackData.onSuccess(response.getData().store_listProduct());
+                                    } else {
+                                        callbackData.onFailed("Get shop from server Failed");
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     @Override
@@ -78,11 +91,20 @@ public class StoreService extends ViewModel {
         apolloClient.query(new Checkout_getPaymentServiceProviderForProductQuery(itemId)).enqueue(new ApolloCall.Callback<Checkout_getPaymentServiceProviderForProductQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<Checkout_getPaymentServiceProviderForProductQuery.Data> response) {
-                if(response.getData() != null) {
-                    callbackData.onSuccess(response.getData().checkout_getPaymentServiceProviderForProduct());
-                } else {
-                    callbackData.onFailed("Get MySabay checkout failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            callbackData.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                callbackData.onSuccess(response.getData().checkout_getPaymentServiceProviderForProduct());
+                            } else {
+                                callbackData.onFailed("Get MySabay checkout failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override

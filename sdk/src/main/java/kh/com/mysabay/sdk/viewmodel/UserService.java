@@ -1,6 +1,8 @@
 package kh.com.mysabay.sdk.viewmodel;
 
 import android.arch.lifecycle.ViewModel;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.apollographql.apollo.ApolloCall;
 import com.apollographql.apollo.ApolloClient;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import kh.com.mysabay.sdk.callback.DataCallback;
+import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.RSA;
 
 public class UserService extends ViewModel {
@@ -41,11 +44,16 @@ public class UserService extends ViewModel {
         apolloClient.mutate(loginWithPhoneMutation).enqueue(new ApolloCall.Callback<LoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginWithPhoneMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_loginPhone());
-                } else {
-                    dataCallback.onFailed("Login Failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getData() != null) {
+                            dataCallback.onSuccess(response.getData().sso_loginPhone());
+                        } else {
+                            dataCallback.onFailed("Login Failed");
+                        }
+                    }
+                });
             }
 
             @Override
@@ -56,18 +64,29 @@ public class UserService extends ViewModel {
     }
 
     public void verifyOTPCode(String phoneNumber, String code, DataCallback<VerifyOtpCodMutation.Sso_verifyOTP> dataCallback) {
+        LogUtil.info("Phone number", phoneNumber + " Otpcode " + code);
         apolloClient.mutate(new VerifyOtpCodMutation(phoneNumber, code)).enqueue(new ApolloCall.Callback<VerifyOtpCodMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<VerifyOtpCodMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_verifyOTP());
-                } else {
-                    dataCallback.onFailed("Verify OTP failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_verifyOTP());
+                            } else {
+                                dataCallback.onFailed("Verify OTP Data response empty");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
+                LogUtil.info("error", e.toString());
                 dataCallback.onFailed(e);
             }
 
@@ -155,11 +174,20 @@ public class UserService extends ViewModel {
                 .enqueue(new ApolloCall.Callback<UserProfileQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<UserProfileQuery.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_userProfile());
-                } else {
-                    dataCallback.onFailed("Get userProfile failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_userProfile());
+                            } else {
+                                dataCallback.onFailed("Get userProfile failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override

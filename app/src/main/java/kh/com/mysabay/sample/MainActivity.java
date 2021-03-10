@@ -1,5 +1,6 @@
 package kh.com.mysabay.sample;
 
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -144,8 +145,6 @@ public class MainActivity extends AppCompatActivity {
                             LogUtil.info("Profile userId", userProfile.userID.toString());
                             LogUtil.info("Profile name", userProfile.givenName);
                             LogUtil.info("Profile localPayEnabled", userProfile.localPayEnabled.toString());
-//                            LogUtil.info("Profile coin balance", userProfile.wallet.balance.toString());
-//                            LogUtil.info("Profile gold balance", userProfile.wallet.balance.toString());
                             LogUtil.info("Profile persona", userProfile.persona.toString());
                             MessageUtil.displayDialog(v.getContext(), info);
                         } else {
@@ -156,6 +155,11 @@ public class MainActivity extends AppCompatActivity {
                     MessageUtil.displayToast(v.getContext(), "Need user login");
                 }
             }
+        });
+
+        mViewBinding.btnCallActivity.setOnClickListener(v-> {
+            Intent intent = new Intent(this, FunctionCallActivity.class);
+            startActivity(intent);
         });
     }
 

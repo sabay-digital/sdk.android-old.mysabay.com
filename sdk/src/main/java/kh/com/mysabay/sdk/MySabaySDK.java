@@ -86,7 +86,7 @@ public class MySabaySDK {
 
     @Inject
     UserService userService;
-//    @Inject
+    @Inject
     StoreService storeService;
 
     private SharedPreferences mPreferences;
