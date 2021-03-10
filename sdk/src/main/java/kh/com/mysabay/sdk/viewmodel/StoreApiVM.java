@@ -87,7 +87,6 @@ public class StoreApiVM extends ViewModel {
     public final MediatorLiveData<List<ProviderResponse>> _thirdPartyItemMediatorLiveData;
     private final MediatorLiveData<Integer> exChangeRate;
 
-
     @Inject
     public StoreApiVM(ApolloClient apolloClient, StoreRepo storeRepo) {
         this.apolloClient = apolloClient;
@@ -268,6 +267,7 @@ public class StoreApiVM extends ViewModel {
                 priceOfItem = Math.ceil(amount/100);
             }
         }
+
         Invoice_CreateInvoiceInput obj = Invoice_CreateInvoiceInput.builder()
                 .items(items)
                 .amount(priceOfItem)
@@ -347,7 +347,6 @@ public class StoreApiVM extends ViewModel {
                                         if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                                             postToPaidWithMySabayProvider(context, data, paymentAddress);
                                         } else if (type.equals(Globals.ONE_TIME_PROVIDER)){
-//                                            postToPaidWithBank(context, data, paymentAddress);
                                             context.initAddFragment(BankVerifiedFm.newInstance(data, shopItem, "", paymentAddress), PaymentFm.TAG, true);
                                         }
                                     }

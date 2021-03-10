@@ -210,7 +210,18 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         mViewBinding.btnMysabay.setOnClickListener(v -> {
             checkedId[0] = v.getId();
             ShopItem data = viewModel.getItemSelected().getValue();
-            mViewBinding.tvTotal.setText(balanceGold >= amountToPaid ? CurrencyUtils.toSabayGold(amountToPaid) : CurrencyUtils.toSabayCoin(amountToPaid));
+
+            ProviderResponse provider = viewModel.getMysabayProviderId("sabay_coin");
+            if (viewModel.getMysabayProviderId("sabay_gold") != null) {
+                if (balanceGold >= amountToPaid) {
+                    mViewBinding.tvTotal.setText(CurrencyUtils.toSabayGold(amountToPaid));
+                    mViewBinding.btnPay.setText(String.format(getString(R.string.pay), CurrencyUtils.toSabayGold(amountToPaid)));
+                } else {
+                    mViewBinding.tvTotal.setText(CurrencyUtils.toSabayCoin(amountToPaid));
+                    mViewBinding.btnPay.setText(String.format(getString(R.string.pay), CurrencyUtils.toSabayCoin(amountToPaid)));
+                }
+            }
+//            mViewBinding.tvTotal.setText(balanceGold >= amountToPaid ? CurrencyUtils.toSabayGold(amountToPaid) : CurrencyUtils.toSabayCoin(amountToPaid));
             mViewBinding.tvMySabay.setTextColor(textColorCode());
             mViewBinding.btnMysabay.setBackgroundResource(R.drawable.shape_button_primary);
             mViewBinding.tvInAppPurchase.setTextColor(0xFFE3B852);
@@ -223,7 +234,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
             mViewBinding.btnPreAuthPay.setBackgroundResource(R.drawable.payment_button);
             mViewBinding.imgOtherPaymentLogo.setImageResource(R.mipmap.other_payment_option);
             if (amountToPaid <= balanceCoin || amountToPaid <= balanceGold) {
-                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), amountToPaid <= balanceGold ? CurrencyUtils.toSabayGold(amountToPaid) : CurrencyUtils.toSabayCoin(amountToPaid)));
+//                mViewBinding.btnPay.setText(String.format(getString(R.string.pay), amountToPaid <= balanceGold ? CurrencyUtils.toSabayGold(amountToPaid) : CurrencyUtils.toSabayCoin(amountToPaid)));
                 mViewBinding.btnPay.setEnabled(true);
                 mViewBinding.btnPay.setBackgroundResource(R.color.colorYellow);
 
@@ -264,7 +275,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                         purchase(v, PURCHASE_ID);
                 } else
                     MessageUtil.displayDialog(v.getContext(), "Sorry your device not support in app purchase");
-
             } else if (checkedId[0] == R.id.btn_mysabay) {
                 ShopItem data = viewModel.getItemSelected().getValue();
                 if (data == null) return;

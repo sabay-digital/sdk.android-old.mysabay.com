@@ -1,8 +1,6 @@
 package kh.com.mysabay.sdk.viewmodel;
 
 import android.arch.lifecycle.ViewModel;
-import android.content.Context;
-
 import com.apollographql.apollo.ApolloCall;
 import com.apollographql.apollo.ApolloClient;
 import com.apollographql.apollo.api.Input;
@@ -18,6 +16,7 @@ import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.type.Invoice_CreateInvoiceInput;
 import com.mysabay.sdk.type.Store_PagerInput;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -25,14 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.callback.DataCallback;
-import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
+import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
+import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.ResponseItem;
 import kh.com.mysabay.sdk.repository.StoreRepo;
 import kh.com.mysabay.sdk.utils.AppRxSchedulers;
-import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.webservice.AbstractDisposableObs;
 
 public class StoreService extends ViewModel {
@@ -91,6 +92,64 @@ public class StoreService extends ViewModel {
         });
     }
 
+    public void createPaymentProcess(String token, ShopItem shopItem, ProviderResponse provider, String type, int exChangeRate, DataCallback<Object> callbackData) {
+
+        List<Object> items = new ArrayList<>();
+        JSONObject jsonObject=new JSONObject();
+        JSONParser parser = new JSONParser();
+        try {
+            jsonObject.put("package_id",provider.packageId);
+            jsonObject.put("displayName", shopItem.properties.displayName);
+            jsonObject.put("packageCode", shopItem.properties.packageCode);
+            items.add(parser.parse(jsonObject.toString()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        double amount = shopItem.salePrice * exChangeRate;
+        double priceOfItem = shopItem.salePrice;
+
+        if (type.equals(Globals.MY_SABAY_PROVIDER)) {
+            if (provider.issueCurrencies.get(0).equals("SG")) {
+                priceOfItem = Math.ceil(amount/100);
+            } else if (provider.issueCurrencies.get(0).equals("SC")) {
+                priceOfItem = Math.ceil(amount/100);
+            }
+        }
+        Invoice_CreateInvoiceInput obj = Invoice_CreateInvoiceInput.builder()
+                .items(items)
+                .amount(priceOfItem)
+                .currency(provider.issueCurrencies.get(0))
+                .notes("this is invoice")
+                .ssnTxHash("")
+                .paymentProvider("")
+                .build();
+        Input<Invoice_CreateInvoiceInput> input = Input.fromNullable(obj);
+
+        apolloClient.mutate(new CreateInvoiceMutation(input)).toBuilder()
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .build()
+                .enqueue(new ApolloCall.Callback<CreateInvoiceMutation.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<CreateInvoiceMutation.Data> response) {
+                        if (response.getErrors() != null) {
+                            callbackData.onFailed("Create invoice failed");
+                        } else {
+                            if(response.getData() != null) {
+                                getPaymentDetail(token, shopItem, provider.id, response.getData().invoice_createInvoice().invoice().id(), type, callbackData);
+                            } else {
+                                callbackData.onFailed("Create invoice failed");
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        callbackData.onFailed("Create invoice failed");
+                    }
+                });
+    }
+
     public void createInvoice(String token, ShopItem shopItem, DataCallback<CreateInvoiceMutation.Invoice_createInvoice> callbackData) {
         Object shop = new ShopItem(shopItem.id, shopItem.salePrice, shopItem.currencyCode, shopItem.properties);
         List<Object> items = new ArrayList<>();
@@ -128,7 +187,7 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void getPaymentDetail(String token, String paymentProviderId, String paymentAddress, DataCallback<GetPaymentDetailQuery.Data> callback) {
+    public void getPaymentDetail(String token, ShopItem shopItem, String paymentProviderId, String paymentAddress, String type, DataCallback<Object> callback) {
         apolloClient.query(new GetPaymentDetailQuery(paymentProviderId, paymentAddress)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
                 .build()
@@ -136,22 +195,40 @@ public class StoreService extends ViewModel {
                     @Override
                     public void onResponse(@NotNull Response<GetPaymentDetailQuery.Data> response) {
                         if (response.getErrors() == null) {
-                           callback.onSuccess(response.getData());
+                            if (response.getData() != null) {
+                                GetPaymentDetailQuery.Checkout_getPaymentServiceProviderDetailForPayment payment = response.getData().checkout_getPaymentServiceProviderDetailForPayment();
+
+                                Data data = new Data();
+                                data.withHash(payment.hash());
+                                data.withSignature(payment.signature());
+                                data.withPublicKey(payment.publicKey());
+                                data.withRequestUrl(payment.requestUrl());
+                                data.withAdditionalBody(payment.additionalBody());
+                                data.withAdditionalHeader(payment.additionalHeader());
+
+                                if (type.equals(Globals.MY_SABAY_PROVIDER)) {
+                                    postToChargePreAuth(data.requestUrl + paymentAddress, token, data.hash, data.signature, data.publicKey, paymentAddress, callback);
+                                } else if (type.equals(Globals.MY_SABAY_PROVIDER)) {
+
+                                }
+                            } else {
+                                callback.onFailed("Data response is empty");
+                            }
                         }
                     }
                     @Override
                     public void onFailure(@NotNull ApolloException e) {
-                        callback.onFailed("");
+                        callback.onFailed(e);
                     }
                 });
 
     }
 
-    public void postToChargeOneTime(Context context, String token, String hash, String signature, String publicKey, String payment, String paymentAddress, DataCallback<ResponseItem> callback) {
-        storeRepo.postToChargeOneTime(token, hash, signature, publicKey, payment, paymentAddress)
+    public void postToChargeOneTime(String token, String url, String hash, String signature, String publicKey, String paymentAddress, DataCallback<ResponseItem> callback) {
+        storeRepo.postToChargeOneTime(url, token, hash, signature, publicKey, paymentAddress)
                 .subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
-                .subscribe(new AbstractDisposableObs<ResponseItem>(context) {
+                .subscribe(new AbstractDisposableObs<ResponseItem>(null) {
                     @Override
                     protected void onSuccess(ResponseItem response) {
                         if (response.status == 200) {
@@ -167,21 +244,21 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void postToChargePreAuth(Context context, String token, String hash, String signature, String publicKey, String payment, String paymentAddress, DataCallback<ResponseItem> callback) {
-        storeRepo.postToPaid("", token, hash, signature, publicKey, payment).subscribeOn(appRxSchedulers.io())
+    public void postToChargePreAuth(String url, String token, String hash, String signature, String publicKey, String paymentAddress, DataCallback<Object> callback) {
+        storeRepo.postToPaid(url, token, hash, signature, publicKey, paymentAddress).subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
-                .subscribe(new AbstractDisposableObs<PaymentResponseItem>(context) {
+                .subscribe(new AbstractDisposableObs<PaymentResponseItem>(null) {
                     @Override
-                    protected void onSuccess(PaymentResponseItem response) {
-                        if (response != null) {
-//                            callback.onSuccess(response);
+                    protected void onSuccess(PaymentResponseItem paymentResponseItem) {
+                        if (paymentResponseItem != null) {
+                            callback.onSuccess(paymentResponseItem);
                         } else
-                            callback.onFailed("");
+                            callback.onFailed("Data response is empty");
                     }
 
                     @Override
                     protected void onErrors(Throwable error) {
-                        callback.onFailed("");
+                        callback.onFailed(error);
                     }
                 });
     }
