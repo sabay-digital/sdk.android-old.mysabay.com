@@ -28,6 +28,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.matomo.sdk.extra.EcommerceItems;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -242,7 +244,7 @@ public class StoreApiVM extends ViewModel {
      * @param type
      * @param exChangeRate
      */
-    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, int exChangeRate) {
+    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, double exChangeRate) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
         List<Object> items = new ArrayList<>();
@@ -256,6 +258,8 @@ public class StoreApiVM extends ViewModel {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        LogUtil.info("Excahnge-Rate", exChangeRate + "");
 
         double amount = shopItem.salePrice * exChangeRate;
         double priceOfItem = shopItem.salePrice;
@@ -319,6 +323,9 @@ public class StoreApiVM extends ViewModel {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
+        LogUtil.info("Id", id);
+        LogUtil.info("paymentAddress", paymentAddress);
+
         apolloClient.query(new GetPaymentDetailQuery(id, paymentAddress)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
                 .build()
@@ -344,10 +351,16 @@ public class StoreApiVM extends ViewModel {
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                                     @Override
                                     public void run() {
+                                        EcommerceItems items = new EcommerceItems();
+                                        items.addItem(new EcommerceItems.Item("sku").name(shopItem.properties.displayName).category("category").price((int) (shopItem.salePrice * 1000)).quantity(1));
+
+                                        LogUtil.info("EcommerceItems", items.toJson());
+
+                                        MySabaySDK.getInstance().setEcommerce(context , items, (int) (shopItem.salePrice * 100), (int) (shopItem.salePrice * 100));
                                         if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                                             postToPaidWithMySabayProvider(context, data, paymentAddress);
                                         } else if (type.equals(Globals.ONE_TIME_PROVIDER)){
-                                            context.initAddFragment(BankVerifiedFm.newInstance(data, shopItem, "", paymentAddress), PaymentFm.TAG, true);
+                                            context.initAddFragment(BankVerifiedFm.newInstance(data, shopItem, paymentAddress, invoiceId), PaymentFm.TAG, true);
                                         }
                                     }
                                 });

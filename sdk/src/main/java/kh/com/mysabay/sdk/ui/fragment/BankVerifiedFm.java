@@ -18,6 +18,7 @@ import android.webkit.WebViewClient;
 
 import com.google.gson.Gson;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,11 +48,12 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     public static final String EXT_KEY_DATA = "EXT_KEY_DATA";
     public static final String PSP_CODE = "EXT_PSP_CODE";
     public static final String PAYMENT_ADDRESS = "PAYMENT_ADDRESS";
+    public static final String INVOICE_ID = "PAYMENT_ADDRESS";
 
     private ShopItem mData;
     private Data mPaymentResponseItem;
-    private String pspCode;
     private String paymentAddress;
+    private String invoiceId;
     private boolean isFinished = false;
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
@@ -64,12 +66,12 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     int delay = 5000;
 
     @NotNull
-    public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String pspCode, String paymentAddress) {
+    public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String paymentAddress, String invoiceId) {
         Bundle args = new Bundle();
         args.putParcelable(EXT_KEY_PaymentResponseItem, item);
         args.putParcelable(EXT_KEY_DATA, shopItem);
-        args.putString(PSP_CODE, pspCode);
         args.putString(PAYMENT_ADDRESS, paymentAddress);
+        args.putString(INVOICE_ID, invoiceId);
         BankVerifiedFm f = new BankVerifiedFm();
         f.setArguments(args);
         return f;
@@ -77,11 +79,12 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        LogUtil.info("Re-Work", "Bankverify");
         if (getArguments() != null) {
             mPaymentResponseItem = getArguments().getParcelable(EXT_KEY_PaymentResponseItem);
             mData = getArguments().getParcelable(EXT_KEY_DATA);
-            pspCode= getArguments().getString(PSP_CODE);
             paymentAddress = getArguments().getString(PAYMENT_ADDRESS);
+            invoiceId = getArguments().getString(INVOICE_ID);
         }
         setRetainInstance(true);
         super.onCreate(savedInstanceState);
@@ -164,12 +167,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
                 }
             });
 
-            String html;
-            if (pspCode.equals("wing")) {
-                html = wingFormValidate(mPaymentResponseItem);
-            } else {
-                html = scriptFormValidate(mPaymentResponseItem);
-            }
+            String html = scriptFormValidate(mPaymentResponseItem);
             mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl + paymentAddress, html, "text/html", "utf-8", mPaymentResponseItem.requestUrl + paymentAddress);
         }
     }
@@ -237,6 +235,10 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             @Override
             public void onSuccess(InvoiceItemResponse response) {
                 LogUtil.info("Invoice Response", response.toString());
+//                if (!StringUtils.isEmpty(response.ssnTxHash) || response.ssnTxHash != null) {
+//                    mViewBinding.btnBack.setVisibility(View.VISIBLE);
+//                    mViewBinding.btnClose.setVisibility(View.VISIBLE);
+//                }
             }
 
             @Override
@@ -250,8 +252,8 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
         handler.postDelayed(runnable = new Runnable() {
             public void run() {
                 if(mTimerRunning) {
-                    LogUtil.info("Called", "in 5 seconds");
-                    getInvoiceId("6035c9ad8e407b00189c7d95");
+                    LogUtil.info("InvoiceId", invoiceId);
+                    getInvoiceId(invoiceId);
                     handler.postDelayed(runnable, delay);
                 } else {
                     handler.removeCallbacks(runnable);
@@ -266,7 +268,6 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             @Override
             public void onTick(long millisUntilFinished) {
                 mTimeLeftInMillis = millisUntilFinished;
-
                 updateCountDownText();
             }
 
@@ -295,10 +296,26 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mCountDownTimer != null) {
+            mCountDownTimer.cancel();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (mCountDownTimer != null) {
+            mCountDownTimer.cancel();
+        }
+    }
+
     @NotNull
     @Contract(pure = true)
     private String scriptFormValidate(@NotNull Data item) {
-        LogUtil.info("request url", item.requestUrl);
+        LogUtil.info("request url", item.requestUrl + paymentAddress);
         LogUtil.info("hash", item.hash);
         LogUtil.info("signature", item.signature);
         LogUtil.info("publicKey", item.publicKey);

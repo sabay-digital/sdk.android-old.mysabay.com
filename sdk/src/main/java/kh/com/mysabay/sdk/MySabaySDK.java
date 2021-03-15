@@ -515,11 +515,11 @@ public class MySabaySDK {
         getTracker(context).setUserId(userId);
     }
 
-    public void setEcommerce(Context context) {
-        EcommerceItems items = new EcommerceItems();
-        items.addItem(new EcommerceItems.Item("sku").name("product").category("category").price(2000).quantity(1));
+    public void setEcommerce(Context context, EcommerceItems items, Integer grandTotal, Integer subTotal) {
+//        EcommerceItems items = new EcommerceItems();
+//        items.addItem(new EcommerceItems.Item("sku").name("product").category("category").price(2000).quantity(1));
 
-        TrackHelper.track().order("orderId2", 2200).subTotal(2000).tax(200).shipping(0).discount(0).items(items).with(getTracker(context));
+        TrackHelper.track().order("orderId2", grandTotal).subTotal(subTotal).tax(0).shipping(0).discount(0).items(items).with(getTracker(context));
     }
 
     public String appSecret() {
