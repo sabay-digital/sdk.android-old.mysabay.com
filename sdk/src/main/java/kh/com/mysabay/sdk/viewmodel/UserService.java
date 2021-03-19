@@ -13,6 +13,7 @@ import com.mysabay.sdk.CheckExistingLoginQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
 import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
 import com.mysabay.sdk.GetMatomoTrackingIdQuery;
+import com.mysabay.sdk.LoginGuestMutation;
 import com.mysabay.sdk.LoginWithFacebookMutation;
 import com.mysabay.sdk.LoginWithMySabayMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
@@ -283,6 +284,33 @@ public class UserService extends ViewModel {
             @Override
             public void onFailure(@NotNull ApolloException e) {
                 dataCallback.onFailed(e);
+            }
+        });
+    }
+
+    public void loginAsGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> callBackData) {
+        apolloClient.mutate(new LoginGuestMutation()).enqueue(new ApolloCall.Callback<LoginGuestMutation.Data>() {
+            @Override
+            public void onResponse(@NotNull Response<LoginGuestMutation.Data> response) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() == null) {
+                            if (response.getData() != null) {
+                                callBackData.onSuccess(response.getData().sso_loginGuest());
+                            } else {
+                                callBackData.onFailed("Login as guest failed");
+                            }
+                        } else {
+                            callBackData.onFailed("Login as guest failed");
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(@NotNull ApolloException e) {
+                callBackData.onFailed("Login as guest failed");
             }
         });
     }

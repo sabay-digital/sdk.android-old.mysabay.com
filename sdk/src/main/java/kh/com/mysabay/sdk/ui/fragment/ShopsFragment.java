@@ -337,7 +337,7 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                             purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
                     receiptBody.withData(dataBody);
                     googleVerifyBody.withReceipt(receiptBody);
-                    viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
+                //    viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
 
                 } catch (Exception e) {
                     e.printStackTrace();

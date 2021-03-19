@@ -225,8 +225,8 @@ public class StoreService extends ViewModel {
                                 data.withSignature(payment.signature());
                                 data.withPublicKey(payment.publicKey());
                                 data.withRequestUrl(payment.requestUrl());
-                                data.withAdditionalBody(payment.additionalBody());
-                                data.withAdditionalHeader(payment.additionalHeader());
+                                data.withAdditionalBody((JSONObject) payment.additionalBody());
+                                data.withAdditionalHeader((JSONObject) payment.additionalHeader());
 
                                 if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                                     postToChargePreAuth(data.requestUrl + paymentAddress, token, data.hash, data.signature, data.publicKey, paymentAddress, callback);

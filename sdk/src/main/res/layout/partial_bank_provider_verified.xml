@@ -57,5 +57,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tool_bar" />
+
+        <include
+            android:id="@+id/waiting_view"
+            layout="@layout/view_wait"
+            android:visibility="visible" />
+
     </android.support.constraint.ConstraintLayout>
 </layout>

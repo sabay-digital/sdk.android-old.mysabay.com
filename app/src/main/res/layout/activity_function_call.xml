@@ -6,19 +6,30 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".FunctionCallActivity">
-
+        tools:context=".FunctionCallActivity"
+        android:layout_gravity="center">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
         <android.support.v7.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_login_guest"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="Login as Guest" />
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_login"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:text="Login" />
+                android:text="Login with phonumber" />
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_verify"
@@ -38,13 +49,136 @@
                 android:layout_height="wrap_content"
                 android:text="Store" />
 
+            <TextView
+                android:id="@+id/shop_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:layout_marginTop="@dimen/padding_10"
+                android:gravity="center"
+                android:text="bonus"
+                android:textColor="@color/colorWhite700" />
+
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_payment_provider"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:text="Payment Provider" />
 
+            <LinearLayout
+                android:id="@+id/btn_group"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="50dp"
+                android:layout_marginTop="@dimen/padding_20"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/padding_20"
+                app:layout_constraintBottom_toTopOf="@+id/btn_pay"
+                app:layout_constraintEnd_toStartOf="@+id/btn_close"
+                app:layout_constraintStart_toEndOf="@+id/btn_back"
+                android:layout_marginStart="@dimen/padding_20"
+                android:layout_marginEnd="@dimen/padding_20"
+                android:background="@drawable/payment_button"
+                android:visibility="gone">
+                <LinearLayout
+                    android:id="@+id/btn_mysabay"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/payment_button"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:gravity="left|center_vertical">
+                    <android.support.v7.widget.AppCompatImageView
+                        android:id="@+id/img_mysabay_logo"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:layout_gravity="left|center_vertical"
+                        />
+                    <TextView
+                        android:id="@+id/tv_my_sabay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="left|center_vertical"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:text="@string/mysabay"
+                        android:textColor="@color/colorYellow" />
+
+                    <TextView
+                        android:id="@+id/btn_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingEnd="@dimen/padding_20"
+                        android:textSize="11sp"
+                        android:gravity="right|center_vertical"
+                        android:text="bonus"
+                        android:textColor="@color/colorWhite700" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btn_in_app_purchase"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:visibility="visible"
+                    android:layout_marginTop="@dimen/padding_10"
+                    android:background="@drawable/payment_button"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:gravity="left|center_vertical">
+                    <android.support.v7.widget.AppCompatImageView
+                        android:id="@+id/img_in_app_billing_logo"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:layout_gravity="left|center_vertical"
+                        />
+                    <TextView
+                        android:id="@+id/tv_in_app_purchase"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="left|center_vertical"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:text="Android In App Billing"
+                        android:textColor="@color/colorYellow" />
+
+                    <TextView
+                        android:id="@+id/lbl_in_app_purchase"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingEnd="@dimen/padding_20"
+                        android:textSize="11sp"
+                        android:gravity="right|center_vertical"
+                        android:text="bonus"
+                        android:textColor="@color/colorWhite700" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/btn_third_bank_provider"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="@dimen/padding_10"
+                    android:background="@drawable/payment_button"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:gravity="left|center_vertical">
+                    <android.support.v7.widget.AppCompatImageView
+                        android:id="@+id/img_other_payment_logo"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:src="@mipmap/other_payment_option"
+                        android:layout_gravity="left|center_vertical"
+                        />
+                    <TextView
+                        android:id="@+id/tv_third_bank_provider"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="left|center_vertical"
+                        android:paddingLeft="@dimen/padding_10"
+                        android:text="@string/select_a_partner_bank"
+                        android:textColor="@color/colorYellow" />
+                </LinearLayout>
+            </LinearLayout>
+
         </android.support.v7.widget.LinearLayoutCompat>
+        </ScrollView>
 
         <LinearLayout
             android:id="@+id/view_pb"

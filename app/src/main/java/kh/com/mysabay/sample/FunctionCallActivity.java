@@ -14,6 +14,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
 import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
+import com.mysabay.sdk.LoginGuestMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
 import com.mysabay.sdk.UserProfileQuery;
 import com.mysabay.sdk.VerifyOtpCodMutation;
@@ -21,14 +22,13 @@ import com.mysabay.sdk.VerifyOtpCodMutation;
 import java.util.ArrayList;
 import java.util.List;
 
+import kh.com.mysabay.adapter.ShopItemAdapter;
 import kh.com.mysabay.sample.databinding.ActivityFunctionCallBinding;
 import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.adapter.BankProviderAdapter;
-import kh.com.mysabay.sdk.adapter.ShopAdapter;
 import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.PartialBankProviderBinding;
-import kh.com.mysabay.sdk.databinding.PartialShopItemBinding;
 import kh.com.mysabay.sdk.databinding.PartialShopProviderBinding;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
@@ -46,12 +46,28 @@ public class FunctionCallActivity extends AppCompatActivity {
     private GridLayoutManager mLayoutManager;
 
     List<ShopItem> shopItems;
+    List<MySabayItemResponse> mySabayItemResponses;
+    private ShopItem shopItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewBinding = DataBindingUtil.setContentView(this, R.layout.activity_function_call);
         mViewBinding.viewPb.setVisibility(View.GONE);
+
+        mViewBinding.btnLoginGuest.setOnClickListener(v -> {
+            MySabaySDK.getInstance().loginAsGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
+                @Override
+                public void onSuccess(LoginGuestMutation.Sso_loginGuest response) {
+                    MessageUtil.displayDialog(v.getContext(), new Gson().toJson(response.toString()));
+                }
+
+                @Override
+                public void onFailed(Object error) {
+                    LogUtil.info("Error", error.toString());
+                }
+            });
+        });
 
         mViewBinding.btnLogin.setOnClickListener(v -> {
             MySabaySDK.getInstance().loginWithPhoneNumber("85512267670", new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
@@ -120,17 +136,32 @@ public class FunctionCallActivity extends AppCompatActivity {
         });
 
         mViewBinding.btnPaymentProvider.setOnClickListener(v-> {
-            MySabaySDK.getInstance().getMySabayCheckout(shopItems.get(0).id, new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
+            if (shopItem != null) {
+            MySabaySDK.getInstance().getMySabayCheckout(shopItem.id, new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
                 @Override
                 public void onSuccess(Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct response) {
-
                     List<Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider> providers = response.paymentServiceProviders();
-                    List<MySabayItemResponse> mySabayItemResponses = new ArrayList<>();
+                    mySabayItemResponses = new ArrayList<>();
                     for (Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider payment : providers) {
                         MySabayItemResponse paymentProvider = new Gson().fromJson(new Gson().toJson(payment), MySabayItemResponse.class);
                         mySabayItemResponses.add(paymentProvider);
                     }
-                    showBankProviders(v.getContext(), get3PartyCheckout(v.getContext(), mySabayItemResponses));
+                    mViewBinding.btnGroup.setVisibility(View.VISIBLE);
+                    if (checkMySabayProvider(mySabayItemResponses)) {
+                        mViewBinding.btnMysabay.setVisibility(View.VISIBLE);
+                    } else {
+                        mViewBinding.btnMysabay.setVisibility(View.GONE);
+                    }
+                    if (checkOneTimeProvider(mySabayItemResponses)) {
+                        mViewBinding.btnThirdBankProvider.setVisibility(View.VISIBLE);
+                    } else {
+                        mViewBinding.btnThirdBankProvider.setVisibility(View.GONE);
+                    }
+                    if (checkIapProvider(mySabayItemResponses)) {
+                        mViewBinding.btnInAppPurchase.setVisibility(View.VISIBLE);
+                    } else {
+                        mViewBinding.btnInAppPurchase.setVisibility(View.GONE);
+                    }
                 }
 
                 @Override
@@ -138,6 +169,18 @@ public class FunctionCallActivity extends AppCompatActivity {
                     LogUtil.info("Error", error.toString());
                 }
             });
+
+            } else {
+                MessageUtil.displayDialog(v.getContext(), "Please select item first");
+            }
+        });
+
+        mViewBinding.btnThirdBankProvider.setOnClickListener(v -> {
+           showBankProviders(v.getContext(), get3PartyCheckout(v.getContext(), mySabayItemResponses));
+        });
+
+        mViewBinding.btnMysabay.setOnClickListener(v -> {
+            mViewBinding.btnMysabay.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorYellow);
         });
     }
 
@@ -195,19 +238,17 @@ public class FunctionCallActivity extends AppCompatActivity {
         if (dialogShop != null) {
             dialogShop.dismiss();
         }
-        ShopAdapter adapter = new ShopAdapter(context, item -> {
+        ShopItemAdapter adapter = new ShopItemAdapter(context, data, item -> {
            if (item != null) {
-
+               shopItem = item;
+               mViewBinding.shopItem.setText(shopItem.properties.displayName);
            }
-            if (dialogShop != null)
+           if (dialogShop != null)
                 dialogShop.dismiss();
             dialogShop = null;
         });
 
-        adapter.clear();
-        adapter.insert(data);
         adapter.notifyDataSetChanged();
-
         PartialShopProviderBinding view = DataBindingUtil.inflate(LayoutInflater.from(context), kh.com.mysabay.sdk.R.layout.partial_shop_provider, null, false);
         RecyclerView rcv = view.rcv;
         mLayoutManager = new GridLayoutManager(context, getResources().getInteger(kh.com.mysabay.sdk.R.integer.layout_size));
@@ -228,5 +269,35 @@ public class FunctionCallActivity extends AppCompatActivity {
                     dialogShop = null;
                 }).build();
         dialogShop.show();
+    }
+
+    public boolean checkMySabayProvider(List<MySabayItemResponse> mySabayItemResponses) {
+        boolean isFound = false;
+        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+            if (mySabayItemResponse.type.equals(Globals.MY_SABAY_PROVIDER)) {
+                isFound = true;
+            }
+        }
+        return  isFound;
+    }
+
+    public boolean checkOneTimeProvider(List<MySabayItemResponse> mySabayItemResponses) {
+        boolean isFound = false;
+        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+            if (mySabayItemResponse.type.equals(Globals.ONE_TIME_PROVIDER)) {
+                isFound = true;
+            }
+        }
+        return  isFound;
+    }
+
+    public boolean checkIapProvider(List<MySabayItemResponse> mySabayItemResponses) {
+        boolean isFound = false;
+        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+            if (mySabayItemResponse.type.equals(Globals.IAP_PROVIDER)) {
+                isFound = true;
+            }
+        }
+        return  isFound;
     }
 }

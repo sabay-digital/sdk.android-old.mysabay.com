@@ -74,7 +74,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     public static final String EXT_KEY_DATA = "EXT_KEY_DATA";
 
     private ShopItem mData;
-    private static String PURCHASE_ID = "android.test.purchased";
+    private static String PURCHASE_ID = "kh.com.sabay.aog.iap.2_usd";
     private MaterialDialog dialogBank;
     private Double balanceCoin;
     private Double balanceGold;
@@ -265,7 +265,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
         mViewBinding.btnPay.setOnClickListener(v -> {
             if (checkedId[0] == R.id.btn_in_app_purchase) {
-                ProviderResponse data =  viewModel.getInAppPurchaseProvider(v.getContext());
+//                ProviderResponse data =  viewModel.getInAppPurchaseProvider(v.getContext());
                 if (viewModel.getItemSelected().getValue() != null) {
 //                    if (!BuildConfig.DEBUG)
 //                        PURCHASE_ID = data.id;
@@ -275,7 +275,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
             } else if (checkedId[0] == R.id.btn_mysabay) {
                 ShopItem data = viewModel.getItemSelected().getValue();
                 if (data == null) return;
-                paymentProcess(getContext(), mData, Globals.MY_SABAY_PROVIDER, null);
+                paymentProcess(getContext(), mData, Globals.MY_SABAY_PROVIDER, null, null);
 
             } else if (checkedId[0] == R.id.btn_third_bank_provider) {
                 viewModel.get3PartyCheckout(v.getContext());
@@ -322,7 +322,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         BankProviderAdapter adapter = new BankProviderAdapter(context, data, item -> {
             ProviderResponse provider = (ProviderResponse) item;
                 if (item != null) {
-                    paymentProcess(getContext(), mData, Globals.ONE_TIME_PROVIDER, provider);
+                    paymentProcess(getContext(), mData, Globals.ONE_TIME_PROVIDER, provider, null);
             }
             if (dialogBank != null)
                 dialogBank.dismiss();
@@ -487,7 +487,12 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                                 purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
                         receiptBody.withData(dataBody);
                         googleVerifyBody.withReceipt(receiptBody);
-                        viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
+                        ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
+                        String body = gson.toJson(googleVerifyBody);
+
+                        LogUtil.info("Provider", provider.toString());
+
+                        paymentProcess(getContext(), mData, Globals.IAP_PROVIDER, provider, body);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -498,22 +503,22 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     }
 
     void handlePurchase(Purchase purchase) {
+        ConsumeResponseListener listener = new ConsumeResponseListener() {
+            @Override
+            public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
+                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    LogUtil.info("Consume Purchase", "consume");
+                    savePurchaseValueToPref(true);
+                }
+            }
+        };
+
         ConsumeParams consumeParams =
                 ConsumeParams.newBuilder()
                         .setPurchaseToken(purchase.getPurchaseToken())
                         .build();
         billingClient.consumeAsync(consumeParams, listener);
     }
-
-    ConsumeResponseListener listener = new ConsumeResponseListener() {
-        @Override
-        public void onConsumeResponse(BillingResult billingResult, String purchaseToken) {
-            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                LogUtil.info("Consume Purchase", "consume");
-                savePurchaseValueToPref(true);
-            }
-        }
-    };
 
     private boolean verifyValidSignature(String signedData, String signature) {
         try {
@@ -547,7 +552,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         super.onPause();
     }
 
-    private void paymentProcess(Context context, ShopItem data, String type, ProviderResponse providerResponse) {
+    private void paymentProcess(Context context, ShopItem data, String type, ProviderResponse providerResponse, String body) {
         if(exChangeRate != 0.0) {
             if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                 double amount = data.salePrice * exChangeRate;
@@ -569,11 +574,13 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                             getString(R.string.confirm), colorCodeBackground(), null,
                             (dialog, which) -> {
                     if (data != null) {
-                        viewModel.createPayment(getContext(), mData, provider, type, exChangeRate);
+                        viewModel.createPayment(getContext(), mData, provider, type, exChangeRate, null);
                     }
                 });
             } else if (type.equals(Globals.ONE_TIME_PROVIDER)) {
-                viewModel.createPayment(getContext(), mData, providerResponse, type, exChangeRate);
+                viewModel.createPayment(getContext(), mData, providerResponse, type, exChangeRate, null);
+            } else {
+                viewModel.createPayment(getContext(), mData, providerResponse, type, exChangeRate, body);
             }
         } else {
             MessageUtil.displayDialog(context, "Get exchange rate failed");

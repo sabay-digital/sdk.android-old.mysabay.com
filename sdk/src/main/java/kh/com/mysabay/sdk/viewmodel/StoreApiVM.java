@@ -7,7 +7,6 @@ import android.arch.lifecycle.ViewModel;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-
 import com.apollographql.apollo.ApolloCall;
 import com.apollographql.apollo.ApolloClient;
 import com.apollographql.apollo.api.Input;
@@ -244,7 +243,7 @@ public class StoreApiVM extends ViewModel {
      * @param type
      * @param exChangeRate
      */
-    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, double exChangeRate) {
+    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, double exChangeRate, String body) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
         List<Object> items = new ArrayList<>();
@@ -259,16 +258,18 @@ public class StoreApiVM extends ViewModel {
             e.printStackTrace();
         }
 
-        LogUtil.info("Excahnge-Rate", exChangeRate + "");
+        LogUtil.info("Excahnge-Rate", provider.toString());
 
         double amount = shopItem.salePrice * exChangeRate;
         double priceOfItem = shopItem.salePrice;
 
         if (type.equals(Globals.MY_SABAY_PROVIDER)) {
-            if (provider.issueCurrencies.get(0).equals("SG")) {
-                priceOfItem = Math.ceil(amount/100);
-            } else if (provider.issueCurrencies.get(0).equals("SC")) {
-                priceOfItem = Math.ceil(amount/100);
+            if (provider.issueCurrencies.size() != 0) {
+                if (provider.issueCurrencies.get(0).equals("SG")) {
+                    priceOfItem = Math.ceil(amount/100);
+                } else if (provider.issueCurrencies.get(0).equals("SC")) {
+                    priceOfItem = Math.ceil(amount/100);
+                }
             }
         }
 
@@ -296,7 +297,7 @@ public class StoreApiVM extends ViewModel {
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        getPaymentDetail((StoreActivity) context, shopItem, provider.id, response.getData().invoice_createInvoice().invoice().id(), type);
+                                        getPaymentDetail((StoreActivity) context, shopItem, provider.id, response.getData().invoice_createInvoice().invoice().id(), type, body);
                                     }
                                 });
                             } else {
@@ -319,12 +320,11 @@ public class StoreApiVM extends ViewModel {
      * @param invoiceId
      * @param type
      */
-    public void getPaymentDetail(StoreActivity context, ShopItem shopItem, String id, String invoiceId, String type) {
+    public void getPaymentDetail(StoreActivity context, ShopItem shopItem, String id, String invoiceId, String type, String body) {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
         LogUtil.info("Id", id);
-        LogUtil.info("paymentAddress", paymentAddress);
 
         apolloClient.query(new GetPaymentDetailQuery(id, paymentAddress)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
@@ -352,7 +352,7 @@ public class StoreApiVM extends ViewModel {
                                     @Override
                                     public void run() {
                                         EcommerceItems items = new EcommerceItems();
-                                        items.addItem(new EcommerceItems.Item("sku").name(shopItem.properties.displayName).category("category").price((int) (shopItem.salePrice * 1000)).quantity(1));
+                                        items.addItem(new EcommerceItems.Item("sku").name(shopItem.properties.displayName).category("category").price((int) (shopItem.salePrice * 100)).quantity(1));
 
                                         LogUtil.info("EcommerceItems", items.toJson());
 
@@ -360,7 +360,10 @@ public class StoreApiVM extends ViewModel {
                                         if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                                             postToPaidWithMySabayProvider(context, data, paymentAddress);
                                         } else if (type.equals(Globals.ONE_TIME_PROVIDER)){
+                                            LogUtil.info("paymentAddressa", paymentAddress);
                                             context.initAddFragment(BankVerifiedFm.newInstance(data, shopItem, paymentAddress, invoiceId), PaymentFm.TAG, true);
+                                        } else {
+                                            postToVerifyAppInPurchase(context, data, paymentAddress, body);
                                         }
                                     }
                                 });
@@ -398,21 +401,17 @@ public class StoreApiVM extends ViewModel {
         _thirdPartyItemMediatorLiveData.setValue(result);
     }
 
-    /**
-     * show list all bank provider
-     *
-     * @param context
-     */
-    public ProviderResponse getInAppPurchaseProvider(@NotNull Context context) {
+    public ProviderResponse getInAppPurchaseProvider(String type) {
         if (getMySabayProvider().getValue() == null) return new ProviderResponse();
 
-        List<MySabayItemResponse> mySabayItem = getMySabayProvider().getValue();
-        ProviderResponse provider  = new ProviderResponse();
-
-        for (ProviderResponse item : mySabayItem.get(0).providers) {
+        ProviderResponse provider  = null;
+        for (MySabayItemResponse item : getMySabayProvider().getValue()) {
             if (item.type.equals(Globals.IAP_PROVIDER)) {
-                LogUtil.info("Package Id", item.packageId);
-                provider = item;
+                for (ProviderResponse providerItem: item.providers) {
+                    if (type.equals(providerItem.code)) {
+                        provider = providerItem;
+                    }
+                }
             }
         }
         return provider;
@@ -434,10 +433,19 @@ public class StoreApiVM extends ViewModel {
     return provider;
     }
 
-    public void postToVerifyAppInPurchase(@NotNull Context context, @NotNull GoogleVerifyBody body) {
+    public void postToVerifyAppInPurchase(Context context, Data data, String paymentAddress, String body) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
+
+        LogUtil.info("requestUrl", data.requestUrl);
+        LogUtil.info("hash", data.hash);
+        LogUtil.info("signature", data.signature);
+        LogUtil.info("publicKey", data.publicKey);
+        LogUtil.info("paymentAddress", paymentAddress);
+        LogUtil.info("receipt", body);
+
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
-        mCompos.add(storeRepo.postToVerifyGoogle(MySabaySDK.getInstance().appSecret(), appItem.token, body).subscribeOn(appRxSchedulers.io())
+        mCompos.add(storeRepo.postToVerifyGoogle(data.requestUrl + paymentAddress, appItem.token, data.hash, data.signature, data.publicKey, body)
+                .subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread()).subscribe(new Consumer<GoogleVerifyResponse>() {
                     @Override
                     public void accept(GoogleVerifyResponse googleVerifyResponse) throws Exception {
@@ -449,6 +457,7 @@ public class StoreApiVM extends ViewModel {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
                         _networkState.setValue(new NetworkState(NetworkState.Status.ERROR));
+                        LogUtil.info("Error-In app purchase", throwable.getMessage().toString());
                         MessageUtil.displayDialog(context, "Error" + throwable.getMessage());
                     }
                 }));

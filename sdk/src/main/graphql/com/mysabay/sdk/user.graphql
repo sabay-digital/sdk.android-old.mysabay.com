@@ -110,3 +110,11 @@ query getMatomoTrackingId($serviceCode: String!) {
   }
 }
 
+mutation loginGuest {
+  sso_loginGuest {
+    accessToken
+    refreshToken
+    expire
+  }
+}
+

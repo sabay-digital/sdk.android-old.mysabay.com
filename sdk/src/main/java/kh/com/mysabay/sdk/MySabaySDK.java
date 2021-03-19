@@ -24,6 +24,7 @@ import com.mysabay.sdk.DeleteTokenMutation;
 import com.mysabay.sdk.GetInvoiceByIdQuery;
 import com.mysabay.sdk.GetMatomoTrackingIdQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
+import com.mysabay.sdk.LoginGuestMutation;
 import com.mysabay.sdk.LoginWithMySabayMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
 import com.mysabay.sdk.RefreshTokenMutation;
@@ -249,6 +250,7 @@ public class MySabaySDK {
                             }
                         });
                     } else {
+                        clearAppItem();
                         LogUtil.info("Logout", "null");
                     }
                 }
@@ -595,5 +597,9 @@ public class MySabaySDK {
 
     public void getInvoiceById(String token, String id, DataCallback<GetInvoiceByIdQuery.Data> dataCallback) {
         storeService.getInvoiceById(token, id, dataCallback);
+    }
+
+    public void loginAsGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> dataCallback) {
+        userService.loginAsGuest(dataCallback);
     }
 }
