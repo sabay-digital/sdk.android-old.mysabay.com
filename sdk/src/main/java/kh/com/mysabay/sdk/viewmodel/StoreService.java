@@ -1,7 +1,6 @@
 package kh.com.mysabay.sdk.viewmodel;
 
 import android.arch.lifecycle.ViewModel;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -30,12 +29,8 @@ import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
-import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.repository.StoreRepo;
-import kh.com.mysabay.sdk.ui.activity.StoreActivity;
-import kh.com.mysabay.sdk.ui.fragment.BankVerifiedFm;
-import kh.com.mysabay.sdk.ui.fragment.PaymentFm;
 import kh.com.mysabay.sdk.utils.AppRxSchedulers;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.webservice.AbstractDisposableObs;
@@ -354,9 +349,5 @@ public class StoreService extends ViewModel {
                         callback.onFailed(e);
                     }
                 });
-    }
-
-    public void webView(StoreActivity context, Data data, ShopItem shopItem, String paymentAddress, String invoiceId) {
-        context.initAddFragment(BankVerifiedFm.newInstance(data, shopItem, paymentAddress, invoiceId), PaymentFm.TAG, true);
     }
 }

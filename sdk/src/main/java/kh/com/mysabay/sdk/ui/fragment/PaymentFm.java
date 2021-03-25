@@ -9,6 +9,8 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -46,6 +48,7 @@ import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.adapter.BankProviderAdapter;
 import kh.com.mysabay.sdk.base.BaseFragment;
 import kh.com.mysabay.sdk.billing.Security;
+import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.FmPaymentBinding;
 import kh.com.mysabay.sdk.databinding.PartialBankProviderBinding;
 import kh.com.mysabay.sdk.pojo.AppItem;
@@ -56,7 +59,9 @@ import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
 import kh.com.mysabay.sdk.pojo.profile.Wallet;
+import kh.com.mysabay.sdk.pojo.shop.Provider;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
+import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.CurrencyUtils;
 import kh.com.mysabay.sdk.utils.FontUtils;
@@ -88,6 +93,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     public static final String PURCHASE_KEY= "purchase";
     private double exChangeRate;
     private double amountToPaid;
+    private FragmentManager mManager;
 
     @NotNull
     @Contract("_ -> new")
@@ -117,6 +123,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         mViewBinding.materialCardView.setBackgroundResource(colorCodeBackground());
         mViewBinding.btnPay.setTextColor(textColorCode());
         mViewBinding.cdSabayId.setBackgroundResource(colorCodeBackground());
+        mManager = getFragmentManager();
 
         viewModel.setShopItemSelected(mData);
         viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), mData.id);
@@ -384,6 +391,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
     boolean verifyInstallerId(Context context) {
         List<String> validInstallers = new ArrayList<>(Arrays.asList("com.android.vending", "com.google.android.feedback"));
+
         final String installer = context.getPackageManager().getInstallerPackageName(context.getPackageName());
         return installer != null && validInstallers.contains(installer);
     }
@@ -567,17 +575,43 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                             getString(R.string.confirm), colorCodeBackground(), null,
                             (dialog, which) -> {
                     if (data != null) {
-                        viewModel.createPayment(getContext(), mData, provider, type, exChangeRate, null);
+                        testPayment(getContext(), mData, provider, type, exChangeRate, null);
                     }
                 });
-            } else if (type.equals(Globals.ONE_TIME_PROVIDER)) {
-                viewModel.createPayment(getContext(), mData, providerResponse, type, exChangeRate, null);
+            }
+            else if (type.equals(Globals.ONE_TIME_PROVIDER)) {
+               testPayment(getContext(), mData, providerResponse, type, exChangeRate, null);
             } else {
-                viewModel.createPayment(getContext(), mData, providerResponse, type, exChangeRate, body);
+                testPayment(getContext(), mData, providerResponse, type, exChangeRate, body);
             }
         } else {
             MessageUtil.displayDialog(context, "Get exchange rate failed");
         }
+    }
+
+    public void testPayment(Context context, ShopItem item, ProviderResponse provider, String type, double exChangeRate, GoogleVerifyBody body) {
+        viewModel.createPayment(context, item, provider, type, exChangeRate, new DataCallback<Data>() {
+            @Override
+            public void onSuccess(Data response) {
+                LogUtil.info("Get-payment-detail", new Gson().toJson(response));
+                if(type == Globals.MY_SABAY_PROVIDER) {
+                    viewModel.postToPaidWithMySabayProvider(context, response, response.paymentAddress);
+                } else if (type == Globals.IAP_PROVIDER) {
+                    viewModel.postToVerifyAppInPurchase(context, response, response.paymentAddress, body);
+                } else {
+                    initAddFragment(BankVerifiedFm.newInstance(response, item, response.paymentAddress, response.invoiceId), PaymentFm.TAG, true);
+                }
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                LogUtil.info("Get-payment-error", error.toString());
+            }
+        });
+    }
+
+    public void initAddFragment(Fragment f, String tag, boolean isBack) {
+        Globals.initAddFragment(mManager, f, tag, isBack);
     }
 
     public void getUserProfile() {
