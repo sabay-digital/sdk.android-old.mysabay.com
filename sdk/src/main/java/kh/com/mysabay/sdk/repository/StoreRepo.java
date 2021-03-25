@@ -31,8 +31,8 @@ public class StoreRepo implements StoreApi {
     }
 
     @Override
-    public Observable<GoogleVerifyResponse> postToVerifyGoogle(String url, String token,  String hash, String signature, String publicKey, String body) {
-        return this.storeApi.postToVerifyGoogle(url, "Bearer " + token, hash, signature, publicKey, body);
+    public Observable<GoogleVerifyResponse> postToVerifyGoogle(String url, String token, GoogleVerifyBody body) {
+        return this.storeApi.postToVerifyGoogle(url, "Bearer " + token, body);
     }
 
     @Override

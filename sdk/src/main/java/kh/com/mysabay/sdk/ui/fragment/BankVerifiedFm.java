@@ -72,7 +72,6 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     int delay = 5000;
     @Inject
     Gson gson;
-    private OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
     @NotNull
     public static BankVerifiedFm newInstance(Data item, ShopItem shopItem, String paymentAddress, String invoiceId) {
@@ -88,7 +87,6 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        LogUtil.info("Re-Work", "Bank Verify");
         if (getArguments() != null) {
             mPaymentResponseItem = getArguments().getParcelable(EXT_KEY_PaymentResponseItem);
             mData = getArguments().getParcelable(EXT_KEY_DATA);
@@ -149,6 +147,8 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
             mViewBinding.viewWeb.setBackgroundResource(colorCodeBackground());
             mViewBinding.wv.setWebViewClient(new WebViewClient());
+
+            LogUtil.info("request url", mPaymentResponseItem.requestUrl + paymentAddress);
 
             FormBody.Builder formBuilder = new FormBody.Builder()
                     .add("hash", mPaymentResponseItem.hash)

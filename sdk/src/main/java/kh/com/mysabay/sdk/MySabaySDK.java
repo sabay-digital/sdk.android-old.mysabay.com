@@ -21,6 +21,7 @@ import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
 import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
 import com.mysabay.sdk.DeleteTokenMutation;
+import com.mysabay.sdk.GetExchangeRateQuery;
 import com.mysabay.sdk.GetInvoiceByIdQuery;
 import com.mysabay.sdk.GetMatomoTrackingIdQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
@@ -44,6 +45,8 @@ import org.matomo.sdk.extra.EcommerceItems;
 import org.matomo.sdk.extra.MatomoApplication;
 import org.matomo.sdk.extra.TrackHelper;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -56,9 +59,13 @@ import kh.com.mysabay.sdk.di.BaseAppComponent;
 import kh.com.mysabay.sdk.di.DaggerBaseAppComponent;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.NetworkState;
+import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
+import kh.com.mysabay.sdk.pojo.login.Data;
 import kh.com.mysabay.sdk.pojo.login.SubscribeLogin;
+import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.SubscribePayment;
+import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.ui.activity.LoginActivity;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.AppRxSchedulers;
@@ -595,11 +602,28 @@ public class MySabaySDK {
         userService.getTrackingID(serviceCode, dataCallback);
     }
 
-    public void getInvoiceById(String token, String id, DataCallback<GetInvoiceByIdQuery.Data> dataCallback) {
+    public void getInvoiceById(String token, String id, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> dataCallback) {
         storeService.getInvoiceById(token, id, dataCallback);
+    }
+
+    public void getExchangeRate(DataCallback<List<GetExchangeRateQuery.Sso_service>> callback) {
+        storeService.getExchangeRate(callback);
+    }
+
+    public void createPaymentProcess(String token, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
+        storeService.createPaymentProcess(token, items, provider, amount, currency, callbackData);
     }
 
     public void loginAsGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> dataCallback) {
         userService.loginAsGuest(dataCallback);
     }
+
+    public void postToChargePreAuth(String url, String token, String hash, String signature, String publicKey, String invoiceId, DataCallback<Object> callback) {
+        storeService.postToChargePreAuth(url, token, hash, signature, publicKey, invoiceId, callback);
+    }
+
+    public void postToChargeInAppPurchase(String url, String token, GoogleVerifyBody body, DataCallback<Object> callback) {
+        storeService.postToChargeInAppPurchase(url, token, body, callback);
+    }
+
 }

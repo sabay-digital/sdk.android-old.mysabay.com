@@ -236,6 +236,41 @@ public class StoreApiVM extends ViewModel {
         });
     }
 
+    public void createPaymentProcess(Context context, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
+        Input<String> serviceCode = Input.fromNullable(MySabaySDK.getInstance().serviceCode());
+        apolloClient.query(new GetExchangeRateQuery(serviceCode)).toBuilder()
+                .build()
+                .enqueue(new ApolloCall.Callback<GetExchangeRateQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<GetExchangeRateQuery.Data> response) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (response.getErrors() != null) {
+                                    callbackData.onFailed(response.getErrors().get(0).getMessage());
+                                } else {
+                                    if (response.getData() != null) {
+                                        createInvoice(context, items, provider, amount, currency, callbackData);
+                                    } else {
+                                        callbackData.onFailed("Get Exchange rate failed");
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callbackData.onFailed(e);
+                            }
+                        });
+                    }
+                });
+    }
+
     /**
      * @param context
      * @param shopItem
@@ -243,7 +278,7 @@ public class StoreApiVM extends ViewModel {
      * @param type
      * @param exChangeRate
      */
-    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, double exChangeRate, String body) {
+    public void createPayment(Context context, ShopItem shopItem, ProviderResponse provider, String type, double exChangeRate, GoogleVerifyBody body) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
         List<Object> items = new ArrayList<>();
@@ -297,7 +332,7 @@ public class StoreApiVM extends ViewModel {
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        getPaymentDetail((StoreActivity) context, shopItem, provider.id, response.getData().invoice_createInvoice().invoice().id(), type, body);
+                                        getPaymentDetails((StoreActivity) context, shopItem, provider.id, response.getData().invoice_createInvoice().invoice().id(), type, body);
                                     }
                                 });
                             } else {
@@ -313,6 +348,61 @@ public class StoreApiVM extends ViewModel {
                 });
     }
 
+    public void getPaymentDetail(Context context, String paymentProviderId, String invoiceId, DataCallback<Object> callback) {
+        String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
+
+        LogUtil.info("Id", paymentProviderId);
+        LogUtil.info("paymentAddress", paymentAddress);
+
+        apolloClient.query(new GetPaymentDetailQuery(paymentProviderId, paymentAddress)).toBuilder()
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .build()
+                .enqueue(new ApolloCall.Callback<GetPaymentDetailQuery.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<GetPaymentDetailQuery.Data> response) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (response.getErrors() != null) {
+                                    LogUtil.info("Getpaymentdetail", response.getErrors().get(0).getMessage());
+                                    callback.onFailed(response.getErrors().get(0).getMessage());
+                                } else {
+                                    if (response.getData() != null) {
+                                        LogUtil.info("Getpaymentdetail", "success");
+                                        GetPaymentDetailQuery.Checkout_getPaymentServiceProviderDetailForPayment payment = response.getData().checkout_getPaymentServiceProviderDetailForPayment();
+
+                                        Data data = new Data();
+                                        data.withHash(payment.hash());
+                                        data.withSignature(payment.signature());
+                                        data.withPublicKey(payment.publicKey());
+                                        data.withRequestUrl(payment.requestUrl());
+                                        data.withAdditionalBody(payment.additionalBody());
+                                        data.withAdditionalHeader(payment.additionalHeader());
+
+                                        data.withPaymentAddress(paymentAddress);
+                                        data.withInvoiceId(invoiceId);
+
+                                        LogUtil.info("Payload", new Gson().toJson(data));
+                                        callback.onSuccess(data);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callback.onFailed(e);
+                            }
+                        });
+                    }
+                });
+
+    }
+
+
     /**
      * @param context
      * @param shopItem
@@ -320,11 +410,12 @@ public class StoreApiVM extends ViewModel {
      * @param invoiceId
      * @param type
      */
-    public void getPaymentDetail(StoreActivity context, ShopItem shopItem, String id, String invoiceId, String type, String body) {
+    public void getPaymentDetails(StoreActivity context, ShopItem shopItem, String id, String invoiceId, String type, GoogleVerifyBody body) {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
         LogUtil.info("Id", id);
+        LogUtil.info("paymentAddress", paymentAddress);
 
         apolloClient.query(new GetPaymentDetailQuery(id, paymentAddress)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
@@ -333,7 +424,7 @@ public class StoreApiVM extends ViewModel {
                     @Override
                     public void onResponse(@NotNull Response<GetPaymentDetailQuery.Data> response) {
                         if (response.getErrors() != null) {
-                            showErrorMsg(context, "Get payment Detail failed");
+                            showErrorMsg(context, response.getErrors().get(0).getMessage());
                         } else {
                             if (response.getData().checkout_getPaymentServiceProviderDetailForPayment() != null) {
                                 GetPaymentDetailQuery.Checkout_getPaymentServiceProviderDetailForPayment payment = response.getData().checkout_getPaymentServiceProviderDetailForPayment();
@@ -433,7 +524,7 @@ public class StoreApiVM extends ViewModel {
     return provider;
     }
 
-    public void postToVerifyAppInPurchase(Context context, Data data, String paymentAddress, String body) {
+    public void postToVerifyAppInPurchase(Context context, Data data, String paymentAddress, GoogleVerifyBody body) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
 
         LogUtil.info("requestUrl", data.requestUrl);
@@ -441,14 +532,20 @@ public class StoreApiVM extends ViewModel {
         LogUtil.info("signature", data.signature);
         LogUtil.info("publicKey", data.publicKey);
         LogUtil.info("paymentAddress", paymentAddress);
-        LogUtil.info("receipt", body);
+        LogUtil.info("receipt", body.toString());
+        body.withHash(data.hash);
+        body.withPublicKey(data.publicKey);
+        body.withSignature(data.signature);
+
+        LogUtil.info("GoogleVerifyBody", gson.toJson(body));
 
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
-        mCompos.add(storeRepo.postToVerifyGoogle(data.requestUrl + paymentAddress, appItem.token, data.hash, data.signature, data.publicKey, body)
+        mCompos.add(storeRepo.postToVerifyGoogle(data.requestUrl + paymentAddress, appItem.token, body)
                 .subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread()).subscribe(new Consumer<GoogleVerifyResponse>() {
                     @Override
                     public void accept(GoogleVerifyResponse googleVerifyResponse) throws Exception {
+                        LogUtil.info("success", "success");
                         _networkState.setValue(new NetworkState(NetworkState.Status.SUCCESS));
                         EventBus.getDefault().post(new SubscribePayment(Globals.APP_IN_PURCHASE, body, null));
                         ((Activity) context).finish();
@@ -491,6 +588,52 @@ public class StoreApiVM extends ViewModel {
                         LogUtil.info("Payment-Error",  error.getMessage());
                         _networkState.setValue(new NetworkState(NetworkState.Status.ERROR, "Request Failed"));
                         EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, null, error.getMessage()));
+                    }
+                });
+    }
+
+    public void createInvoice(Context context, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
+        AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
+        Invoice_CreateInvoiceInput obj = Invoice_CreateInvoiceInput.builder()
+                .items(items)
+                .amount(amount)
+                .currency(currency)
+                .notes("")
+                .ssnTxHash("")
+                .paymentProvider("")
+                .build();
+        Input<Invoice_CreateInvoiceInput> input = Input.fromNullable(obj);
+        apolloClient.mutate(new CreateInvoiceMutation(input)).toBuilder()
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
+                .build()
+                .enqueue(new ApolloCall.Callback<CreateInvoiceMutation.Data>() {
+                    @Override
+                    public void onResponse(@NotNull Response<CreateInvoiceMutation.Data> response) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (response.getErrors() != null) {
+                                    callbackData.onFailed(response.getErrors().get(0).getMessage());
+                                } else {
+                                    if(response.getData() != null) {
+                                        LogUtil.info("Create Invoice", "invoice");
+                                        getPaymentDetail(token, provider.id, response.getData().invoice_createInvoice().invoice().id(), callbackData);
+                                    } else {
+                                        callbackData.onFailed("Create invoice failed");
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(@NotNull ApolloException e) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callbackData.onFailed("Create invoice failed");
+                            }
+                        });
                     }
                 });
     }

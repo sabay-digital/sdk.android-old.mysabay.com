@@ -21,6 +21,15 @@ public class GoogleVerifyBody implements Parcelable {
     @SerializedName("receipt")
     @Expose
     public ReceiptBody receipt;
+    @SerializedName("signature")
+    @Expose
+    public String signature;
+    @SerializedName("hash")
+    @Expose
+    public String hash;
+    @SerializedName("public_key")
+    @Expose
+    public String publicKey;
     public final static Creator<GoogleVerifyBody> CREATOR = new Creator<GoogleVerifyBody>() {
 
 
@@ -40,6 +49,9 @@ public class GoogleVerifyBody implements Parcelable {
 
     protected GoogleVerifyBody(@NotNull Parcel in) {
         this.receipt = ((ReceiptBody) in.readValue((ReceiptBody.class.getClassLoader())));
+        this.signature = ((String) in.readValue((String.class.getClassLoader())));
+        this.hash = ((String) in.readValue((String.class.getClassLoader())));
+        this.publicKey = ((String) in.readValue((String.class.getClassLoader())));
     }
 
     /**
@@ -61,14 +73,30 @@ public class GoogleVerifyBody implements Parcelable {
         return this;
     }
 
+    public GoogleVerifyBody withSignature(String signature) {
+        this.signature = signature;
+        return this;
+    }
+
+    public GoogleVerifyBody withHash(String hash) {
+        this.hash = hash;
+        return this;
+    }
+
+    public GoogleVerifyBody withPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+        return this;
+    }
+
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("receipt", receipt).toString();
+        return new ToStringBuilder(this).append("receipt", receipt).append("hash", hash)
+                .append("signature", signature).append("publicKey", publicKey).toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(receipt).toHashCode();
+        return new HashCodeBuilder().append(receipt).append(signature).append(hash).append(publicKey).toHashCode();
     }
 
     @Contract(value = "null -> false", pure = true)
@@ -86,6 +114,9 @@ public class GoogleVerifyBody implements Parcelable {
 
     public void writeToParcel(@NotNull Parcel dest, int flags) {
         dest.writeValue(receipt);
+        dest.writeValue(signature);
+        dest.writeValue(publicKey);
+        dest.writeValue(hash);
     }
 
     public int describeContents() {

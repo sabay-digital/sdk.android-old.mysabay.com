@@ -38,6 +38,10 @@ public class Data implements Parcelable {
     @Expose
     public Object additionalBody;
 
+    public String paymentAddress;
+
+    public String invoiceId;
+
     public final static Creator<Data> CREATOR = new Creator<Data>() {
 
         @SuppressWarnings({
@@ -59,7 +63,10 @@ public class Data implements Parcelable {
         this.signature = ((String) in.readValue((String.class.getClassLoader())));
         this.hash = ((String) in.readValue((String.class.getClassLoader())));
         this.redirect = ((String) in.readValue((String.class.getClassLoader())));
-        this.additionalBody= ((Object) in.readValue((WingAuthorization.class.getClassLoader())));
+        this.additionalBody= ((Object) in.readValue((Object.class.getClassLoader())));
+        this.additionalHeader= ((Object) in.readValue((Object.class.getClassLoader())));
+        this.paymentAddress = ((String) in.readValue((String.class.getClassLoader())));
+        this.invoiceId = ((String) in.readValue((String.class.getClassLoader())));
     }
 
     /**
@@ -123,6 +130,16 @@ public class Data implements Parcelable {
 
     }
 
+    public Data withPaymentAddress(String paymentAddress) {
+        this.paymentAddress = paymentAddress;
+        return this;
+    }
+
+    public Data withInvoiceId(String invoiceId) {
+        this.invoiceId = invoiceId;
+        return this;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this).append("requestUrl", requestUrl).append("publicKey", publicKey).append("signature", signature)
@@ -155,6 +172,8 @@ public class Data implements Parcelable {
         dest.writeValue(redirect);
         dest.writeValue(additionalBody);
         dest.writeValue(additionalHeader);
+        dest.writeValue(paymentAddress);
+        dest.writeValue(invoiceId);
     }
 
     public int describeContents() {

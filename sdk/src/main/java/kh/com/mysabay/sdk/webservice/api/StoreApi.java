@@ -26,15 +26,10 @@ public interface StoreApi {
     @GET("api/v1.7/cashier")
     Observable<ThirdPartyItem> get3PartyCheckout(@Header("app_secret") String appSecret, @Header("Authorization") String token, @Query("uuid") String uuid);
 
-    @FormUrlEncoded
     @POST
-    @Headers("Content-Type: application/x-www-form-urlencoded")
     Observable<GoogleVerifyResponse> postToVerifyGoogle(@Url String url,
                                                         @Header("Authorization") String token,
-                                                        @Field("hash") String hash,
-                                                        @Field("signature") String signature,
-                                                        @Field("public_key") String publicKey,
-                                                        @Field("receipt") String receipt);
+                                                        @Body() GoogleVerifyBody body);
 
     @FormUrlEncoded
     @POST

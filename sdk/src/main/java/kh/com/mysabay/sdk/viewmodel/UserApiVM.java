@@ -314,6 +314,7 @@ public class UserApiVM extends ViewModel {
      */
     public void verifyMySabayAccount(Context context, String username, String password) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
+        LogUtil.info("Password", RSA.sha256String(password));
         apolloClient.mutate(new VerifyMySabayMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<VerifyMySabayMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<VerifyMySabayMutation.Data> response) {

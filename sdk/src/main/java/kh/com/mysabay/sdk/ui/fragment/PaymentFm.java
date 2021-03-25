@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import kh.com.mysabay.sdk.BuildConfig;
 import kh.com.mysabay.sdk.Globals;
@@ -382,13 +383,8 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
     }
 
     boolean verifyInstallerId(Context context) {
-        // A list with valid installers package name
         List<String> validInstallers = new ArrayList<>(Arrays.asList("com.android.vending", "com.google.android.feedback"));
-
-        // The package name of the app that has installed your app
         final String installer = context.getPackageManager().getInstallerPackageName(context.getPackageName());
-
-        // true if your app has been downloaded from Play Store
         return installer != null && validInstallers.contains(installer);
     }
 
@@ -488,11 +484,8 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                         receiptBody.withData(dataBody);
                         googleVerifyBody.withReceipt(receiptBody);
                         ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
-                        String body = gson.toJson(googleVerifyBody);
 
-                        LogUtil.info("Provider", provider.toString());
-
-                        paymentProcess(getContext(), mData, Globals.IAP_PROVIDER, provider, body);
+                        paymentProcess(getContext(), mData, Globals.IAP_PROVIDER, provider, googleVerifyBody);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -552,7 +545,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
         super.onPause();
     }
 
-    private void paymentProcess(Context context, ShopItem data, String type, ProviderResponse providerResponse, String body) {
+    private void paymentProcess(Context context, ShopItem data, String type, ProviderResponse providerResponse, GoogleVerifyBody body) {
         if(exChangeRate != 0.0) {
             if (type.equals(Globals.MY_SABAY_PROVIDER)) {
                 double amount = data.salePrice * exChangeRate;

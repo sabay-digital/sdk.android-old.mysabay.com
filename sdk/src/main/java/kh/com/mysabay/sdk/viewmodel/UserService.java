@@ -48,11 +48,20 @@ public class UserService extends ViewModel {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        if (response.getData() != null) {
-                            dataCallback.onSuccess(response.getData().sso_loginPhone());
-                        } else {
-                            dataCallback.onFailed("Login Failed");
-                        }
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (response.getErrors() != null) {
+                                    dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                                } else {
+                                    if (response.getData() != null) {
+                                        dataCallback.onSuccess(response.getData().sso_loginPhone());
+                                    } else {
+                                        dataCallback.onFailed("Login Failed");
+                                    }
+                                }
+                            }
+                        });
                     }
                 });
             }
@@ -98,16 +107,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new LoginWithFacebookMutation(token)).enqueue(new ApolloCall.Callback<LoginWithFacebookMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginWithFacebookMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_loginFacebook());
-                } else {
-                    dataCallback.onFailed("Login with facebook failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_loginFacebook());
+                            } else {
+                                dataCallback.onFailed("Login with facebook failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -116,16 +139,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new LoginWithMySabayMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<LoginWithMySabayMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginWithMySabayMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_loginMySabay());
-                } else {
-                    dataCallback.onFailed("Login with MySabay account failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_loginMySabay());
+                            } else {
+                                dataCallback.onFailed("Login with MySabay account failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -134,16 +171,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new VerifyMySabayMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<VerifyMySabayMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<VerifyMySabayMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_verifyMySabay());
-                } else {
-                    dataCallback.onFailed("Verify MySabay account failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_verifyMySabay());
+                            } else {
+                                dataCallback.onFailed("Verify MySabay account failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -152,16 +203,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new LoginWithPhoneMutation(phoneNumber)).enqueue(new ApolloCall.Callback<LoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginWithPhoneMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_loginPhone());
-                } else {
-                    dataCallback.onFailed("Resend OTP failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_loginPhone());
+                            } else {
+                                dataCallback.onFailed("Resend OTP failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -193,7 +258,12 @@ public class UserService extends ViewModel {
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -202,16 +272,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new CreateMySabayLoginMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<CreateMySabayLoginMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<CreateMySabayLoginMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_createMySabayLogin());
-                } else {
-                    dataCallback.onFailed("Create MySabay account failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_createMySabayLogin());
+                            } else {
+                                dataCallback.onFailed("Create MySabay account failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -220,16 +304,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new SendCreateMySabayWithPhoneOTPMutation(phoneNumber)).enqueue(new ApolloCall.Callback<SendCreateMySabayWithPhoneOTPMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<SendCreateMySabayWithPhoneOTPMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_sendCreateMySabayWithPhoneOTP());
-                } else {
-                    dataCallback.onFailed("Create MySabay account failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_sendCreateMySabayWithPhoneOTP());
+                            } else {
+                                dataCallback.onFailed("Create MySabay account failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed("Create MySabay account failed");
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -238,16 +336,30 @@ public class UserService extends ViewModel {
         apolloClient.mutate(new CreateMySabayLoginWithPhoneMutation(username, password, phoneNumber, otpCode)).enqueue(new ApolloCall.Callback<CreateMySabayLoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<CreateMySabayLoginWithPhoneMutation.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData().sso_createMySabayLoginWithPhone());
-                } else {
-                    dataCallback.onFailed("Create MySabay account failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_createMySabayLoginWithPhone());
+                            } else {
+                                dataCallback.onFailed("Create MySabay account failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed("Create MySabay account failed");
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -256,16 +368,30 @@ public class UserService extends ViewModel {
         apolloClient.query(new CheckExistingLoginQuery(username, Sso_LoginProviders.SABAY)).enqueue(new ApolloCall.Callback<CheckExistingLoginQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<CheckExistingLoginQuery.Data> response) {
-                if (response.getData() != null) {
-                    dataCallback.onSuccess(response.getData());
-                } else {
-                    dataCallback.onFailed("check existing MySabay username failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData());
+                            } else {
+                                dataCallback.onFailed("check existing MySabay username failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -274,16 +400,30 @@ public class UserService extends ViewModel {
         apolloClient.query(new GetMatomoTrackingIdQuery(serviceCode)).enqueue(new ApolloCall.Callback<GetMatomoTrackingIdQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<GetMatomoTrackingIdQuery.Data> response) {
-                if(response.getErrors() == null) {
-                    dataCallback.onSuccess(response.getData().sso_service().get(0));
-                } else {
-                    dataCallback.onFailed("Get Matomo Tracking Id failed");
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (response.getErrors() != null) {
+                            dataCallback.onFailed(response.getErrors().get(0).getMessage());
+                        } else {
+                            if (response.getData() != null) {
+                                dataCallback.onSuccess(response.getData().sso_service().get(0));
+                            } else {
+                                dataCallback.onFailed("Get Matomo Tracking Id failed");
+                            }
+                        }
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -310,7 +450,12 @@ public class UserService extends ViewModel {
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                callBackData.onFailed("Login as guest failed");
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callBackData.onFailed(e);
+                    }
+                });
             }
         });
     }
