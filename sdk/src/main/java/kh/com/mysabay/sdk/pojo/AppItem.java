@@ -14,9 +14,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AppItem implements Parcelable {
 
-    @SerializedName("app_secret")
+    @SerializedName("verifyMySabay")
     @Expose
-    public String appSecret;
+    public Boolean verifyMySabay;
+
+    @SerializedName("mySabayUsername")
+    @Expose
+    public String mySabayUsername;
 
     @SerializedName("token")
     @Expose
@@ -39,26 +43,39 @@ public class AppItem implements Parcelable {
     public Integer mysabayUserId;
     @SerializedName("enable_local_pay")
     @Expose
-    public Boolean enableLocalPay;
+    public boolean enableLocalPay;
 
-    public AppItem(String appSecret, String token, String refreshToken, String uuid, long expire) {
-        this.appSecret = appSecret;
+    public AppItem(String mySabayUsername, Boolean verifyMySabay, String token, String refreshToken, String uuid, long expire) {
+        this.mySabayUsername = mySabayUsername;
+        this.verifyMySabay = verifyMySabay;
         this.token = token;
         this.refreshToken = refreshToken;
         this.uuid = uuid;
         this.expire = expire;
     }
 
-    public AppItem(String appSecret, String token, String refreshToken) {
-        this(appSecret, token, refreshToken, null, 0);
+    public AppItem(String mySabayUsername, Boolean verifyMySabay, String token, String refreshToken, long expire) {
+        this.mySabayUsername = mySabayUsername;
+        this.verifyMySabay = verifyMySabay;
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.expire = expire;
     }
 
-    public AppItem(String appSecret) {
-        this(appSecret, null, null, null, 0);
+    public AppItem(String token, String refreshToken, long expire) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.expire = expire;
     }
+
+    public AppItem(String mySabayUsername, Boolean verifyMySabay, String token, String refreshToken) {
+        this(mySabayUsername,verifyMySabay, token, refreshToken, null, 0);
+    }
+
 
     protected AppItem(@NotNull Parcel in) {
-        appSecret = in.readString();
+        mySabayUsername = in.readString();
+        verifyMySabay = in.readBoolean();
         token = in.readString();
         refreshToken = in.readString();
         uuid = in.readString();
@@ -79,8 +96,8 @@ public class AppItem implements Parcelable {
         }
     };
 
-    public AppItem withAppSecret(String appSecret) {
-        this.appSecret = appSecret;
+    public AppItem withVerifyMySabay(Boolean verifyMySabay) {
+        this.verifyMySabay = verifyMySabay;
         return this;
     }
 
@@ -114,6 +131,11 @@ public class AppItem implements Parcelable {
         return this;
     }
 
+    public AppItem withMySabayUsername(String mySabayUsername) {
+        this.mySabayUsername = mySabayUsername;
+        return this;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -121,12 +143,13 @@ public class AppItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(appSecret);
+        dest.writeBoolean(verifyMySabay);
         dest.writeString(token);
         dest.writeString(refreshToken);
         dest.writeString(uuid);
         dest.writeLong(expire);
         dest.writeValue(mysabayUserId);
         dest.writeValue(enableLocalPay);
+        dest.writeString(mySabayUsername);
     }
 }

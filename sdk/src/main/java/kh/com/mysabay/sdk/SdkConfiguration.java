@@ -9,8 +9,7 @@ import kh.com.mysabay.sdk.utils.SdkTheme;
  */
 public class SdkConfiguration {
 
-    public String appId;
-    public String appSecret;
+    public String serviceCode;
     public String licenseKey;
     public String merchantId;
     public boolean isSandBox;
@@ -18,10 +17,9 @@ public class SdkConfiguration {
     public SdkLanguages sdkLanguages;
     public String mySabayAppName;
 
-    private SdkConfiguration(String appId, String appSecret, String licenseKey, String merchantId,
-                             boolean isSandBox, SdkTheme sdkTheme, SdkLanguages sdkLanguages, String mySabayAppName) {
-        this.appId = appId;
-        this.appSecret = appSecret;
+    private SdkConfiguration(String serviceCode, String licenseKey, String merchantId, boolean isSandBox,
+                             SdkTheme sdkTheme, SdkLanguages sdkLanguages, String mySabayAppName) {
+        this.serviceCode = serviceCode;
         this.licenseKey = licenseKey;
         this.merchantId = merchantId;
         this.isSandBox = isSandBox;
@@ -31,8 +29,7 @@ public class SdkConfiguration {
     }
 
     public static class Builder {
-        private final String appId;
-        private final String appSecret;
+        private final String serviceCode;
         private final String licenseKey;
         private final String merchantId;
         private final String mySabayAppName;
@@ -40,9 +37,8 @@ public class SdkConfiguration {
         private SdkTheme sdkTheme = SdkTheme.Dark;
         private SdkLanguages sdkLanguages = SdkLanguages.En;
 
-        public Builder(String appId, String mySabayAppName, String appSecret, String licenseKey, String merchantId) {
-            this.appId = appId;
-            this.appSecret = appSecret;
+        public Builder(String mySabayAppName, String serviceCode, String licenseKey, String merchantId) {
+            this.serviceCode = serviceCode;
             this.licenseKey = licenseKey;
             this.merchantId = merchantId;
             this.mySabayAppName = mySabayAppName;
@@ -64,7 +60,7 @@ public class SdkConfiguration {
         }
 
         public SdkConfiguration build() {
-            return new SdkConfiguration(appId, appSecret, licenseKey, merchantId, isSandBox, sdkTheme, sdkLanguages, mySabayAppName);
+            return new SdkConfiguration(serviceCode, licenseKey, merchantId, isSandBox, sdkTheme, sdkLanguages, mySabayAppName);
         }
     }
 }

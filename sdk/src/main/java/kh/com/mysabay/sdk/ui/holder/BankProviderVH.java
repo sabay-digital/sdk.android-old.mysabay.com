@@ -7,6 +7,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.Priority;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 
 import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.databinding.PartialBankProviderItemBinding;
@@ -33,11 +36,14 @@ public class BankProviderVH extends RecyclerView.ViewHolder {
     }
 
     public void showBankIcon(Context context, String url) {
+        RequestOptions options = new RequestOptions()
+                .placeholder(R.mipmap.other_payment_option)
+                .error(R.mipmap.other_payment_option)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .priority(Priority.HIGH);
         Glide.with(context)
                 .load(url)
-//                .centerCrop()
-//                .placeholder(R.drawable.ic_game_shop)
-//                .error(R.drawable.ic_game_shop)
+                .apply(options)
                 .into(view.appCompatImageView2);
     }
 }

@@ -7,20 +7,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
+        android:background="@color/colorBackground"
         tools:context=".ui.activity.LoginActivity">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/colorBackground"
             >
-            <android.support.v7.widget.AppCompatImageView
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/padding_20"
+                android:layout_marginTop="@dimen/padding_20"
+                android:background="@null"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:src="@drawable/ic_back" />
+            <android.support.v7.widget.AppCompatImageButton
                 android:id="@+id/btn_close"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/padding_20"
                 android:layout_marginEnd="@dimen/padding_20"
+                android:background="@null"
                 android:layout_alignParentEnd="true"
-                app:srcCompat="@drawable/ic_close" />
+                android:src="@drawable/ic_close" />
 
             <android.support.v7.widget.LinearLayoutCompat
                 android:id="@+id/view_login"
@@ -40,7 +52,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginBottom="@dimen/padding_20"
-                    android:text="@string/mysabay_account"
+                    android:text="@string/verify_mysabay"
+                    android:textAllCaps="true"
                     android:textAppearance="@style/BaseAppearanceTitle.MyAppearanceTitle"
                     android:textStyle="bold" />
 
@@ -84,6 +97,7 @@
                         android:textColor="@color/secondary"
                         android:background="@drawable/spinner_bg"
                         android:textCursorDrawable="@null"
+                        android:enabled="false"
                         app:hintTextAppearance="@style/MyAppearanceBody1.Primary" />
 
                 <android.support.v7.widget.AppCompatTextView
@@ -111,7 +125,7 @@
                 <android.support.v7.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center"
+                    android:gravity="bottom|center"
                     android:layout_marginBottom="@dimen/padding_30"
                     android:layout_marginTop="@dimen/padding_20"
                     android:layout_marginStart="@dimen/padding_20"
@@ -121,7 +135,8 @@
                     <android.support.v7.widget.AppCompatButton
                         android:id="@+id/btn_confirm_mysabay"
                         style="@style/ButtonPrimary"
-                        android:layout_width="200dp"
+                        android:layout_width="250dp"
+                        android:layout_height="40dp"
                         android:layout_marginBottom="@dimen/padding_10"
                         android:fontFamily="@font/font_battambang_regular"
                         android:gravity="center"
@@ -142,7 +157,8 @@
                     <android.support.v7.widget.AppCompatButton
                         android:id="@+id/btn_create_mysabay"
                         style="@style/ButtonPrimary"
-                        android:layout_width="200dp"
+                        android:layout_width="250dp"
+                        android:layout_height="40dp"
                         android:fontFamily="@font/font_battambang_regular"
                         android:gravity="center"
                         android:layout_marginBottom="@dimen/padding_20"

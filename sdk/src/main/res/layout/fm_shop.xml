@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackground">
 
-        <android.support.v7.widget.AppCompatImageView
+        <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/btn_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -17,7 +17,8 @@
             android:layout_marginEnd="@dimen/padding_20"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_close" />
+            android:background="@null"
+            android:src="@drawable/ic_close" />
 
         <android.support.v7.widget.AppCompatTextView
             android:id="@+id/tv_shop"

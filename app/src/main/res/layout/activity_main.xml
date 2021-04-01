@@ -14,6 +14,12 @@
             android:gravity="center"
             android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/show_login_screen"
                 android:layout_width="200dp"
@@ -56,6 +62,13 @@
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:text="Logout" />
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_callActivity"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/padding_20"
+                android:text="Test Provided Function" />
         </android.support.v7.widget.LinearLayoutCompat>
 
         <LinearLayout

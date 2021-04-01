@@ -20,10 +20,10 @@ public class Balance implements Parcelable {
 
     @SerializedName("coin")
     @Expose
-    public Float coin;
+    public Double coin;
     @SerializedName("gold")
     @Expose
-    public Float gold;
+    public Double gold;
     public final static Creator<Balance> CREATOR = new Creator<Balance>() {
 
 
@@ -42,8 +42,8 @@ public class Balance implements Parcelable {
     };
 
     protected Balance(@NotNull Parcel in) {
-        this.coin = ((Float) in.readValue((String.class.getClassLoader())));
-        this.gold = ((Float) in.readValue((String.class.getClassLoader())));
+        this.coin = ((Double) in.readValue((Double.class.getClassLoader())));
+        this.gold = ((Double) in.readValue((Double.class.getClassLoader())));
     }
 
     /**
@@ -57,18 +57,18 @@ public class Balance implements Parcelable {
      * @param coin
      * @param gold
      */
-    public Balance(Float coin, Float gold) {
+    public Balance(Double coin, Double gold) {
         super();
        this.coin = coin;
        this.gold = gold;
     }
 
-    public Balance withCoin(Float coin) {
+    public Balance withCoin(Double coin) {
         this.coin = coin;
         return this;
     }
 
-    public Balance withGold(Float gold) {
+    public Balance withGold(Double gold) {
         this.gold = gold;
         return this;
     }

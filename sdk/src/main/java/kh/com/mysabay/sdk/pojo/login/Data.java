@@ -145,4 +145,6 @@ public class Data implements Parcelable {
         return 0;
     }
 
+    public static class LoginResponseItem {
+    }
 }

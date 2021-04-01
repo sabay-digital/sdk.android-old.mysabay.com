@@ -27,6 +27,9 @@ public class Globals {
     public static final String APP_IN_PURCHASE = "APP_IN_PURCHASE";
     public static final String MY_SABAY = "MY_SABAY";
     public static final String ONE_TIME = "ONE_TIME";
+    public static final String MY_SABAY_PROVIDER = "pre-auth";
+    public static final String ONE_TIME_PROVIDER = "onetime";
+    public static final String IAP_PROVIDER = "iap";
 
     /**
      * Method replace fragment with set title to activity and add backpress

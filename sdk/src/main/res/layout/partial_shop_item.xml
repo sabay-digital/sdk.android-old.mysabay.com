@@ -6,7 +6,7 @@
 
         <variable
             name="item"
-            type="kh.com.mysabay.sdk.pojo.shop.Data" />
+            type="kh.com.mysabay.sdk.pojo.shop.ShopItem" />
     </data>
 
     <android.support.design.card.MaterialCardView
@@ -46,20 +46,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/padding_5"
             android:textSize="16sp"
-            android:text="@{item.name}"
+            android:text="@{item.properties.displayName}"
             android:textAppearance="@style/MyAppearanceBody1.Primary" />
-
-            <android.support.v7.widget.AppCompatTextView
-                android:id="@+id/tv_item_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/padding_5"
-                android:textSize="14sp"
-                android:textColor="@color/secondary"
-                android:gravity="center_horizontal"
-                android:text="@{item.label}"
-                android:visibility="gone"
-                android:textAppearance="@style/MyAppearanceBody1.Primary" />
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/tv_item_price"

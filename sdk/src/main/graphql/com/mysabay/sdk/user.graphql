@@ -1,0 +1,120 @@
+mutation loginWithPhone($phoneNumber: String!) {
+  sso_loginPhone(phoneNumber: $phoneNumber) {
+    verifyMySabay,
+    mySabayUsername,
+    otpExpiry
+  }
+}
+
+mutation verifyOtpCod($phoneNumber: String!, $otpCode: String!) {
+  sso_verifyOTP(phoneNumber: $phoneNumber, otpCode: $otpCode) {
+    accessToken,
+    refreshToken,
+    expire
+  }
+}
+
+mutation  loginWithFacebook($token: String!) {
+  sso_loginFacebook(token: $token) {
+  accessToken,
+  refreshToken,
+  expire
+  }
+}
+
+mutation refreshToken($refreshToken: String!) {
+  sso_refreshToken(refreshToken: $refreshToken) {
+  accessToken,
+  refreshToken,
+  expire
+  }
+}
+
+mutation loginWithMySabay($username: String!, $password: String!) {
+  sso_loginMySabay(username: $username, password: $password) {
+    accessToken,
+    refreshToken,
+    expire
+  }
+}
+
+mutation verifyMySabay($username: String!, $password: String!) {
+  sso_verifyMySabay(username: $username, password: $password) {
+    accessToken,
+    refreshToken,
+    expire
+  }
+}
+
+mutation deleteToken($refreshToken: String!) {
+  sso_deleteToken(refreshToken: $refreshToken)
+}
+
+query verifyToken($accessToken: String!) {
+  sso_verifyToken(accessToken: $accessToken) {
+    uuid,
+    serviceCode,
+    mysabayUserID,
+    type
+  }
+}
+query userProfile {
+  sso_userProfile {
+    userID
+    localPayEnabled
+    givenName
+    status
+    wallet {
+      balance
+      assetCode
+    }
+    persona {
+      uuid
+      serviceCode
+      mysabayUserID
+    }
+  }
+}
+
+query checkExistingLogin($login: String!, $provider: sso_LoginProviders!) {
+  sso_existingLogin(login: $login, provider: $provider)
+}
+
+mutation createMySabayLogin($username: String!, $password: String!) {
+  sso_createMySabayLogin(username: $username, password: $password) {
+    accessToken
+    refreshToken
+    expire
+  }
+}
+
+mutation sendCreateMySabayWithPhoneOTP($phoneNumber: String!) {
+  sso_sendCreateMySabayWithPhoneOTP(phoneNumber: $phoneNumber) {
+    verifyMySabay
+    mySabayUsername
+    otpExpiry
+  }
+}
+
+mutation createMySabayLoginWithPhone($username: String!, $password: String!, $phoneNumber: String!, $otpCode: String!) {
+  sso_createMySabayLoginWithPhone(username: $username, password: $password, phoneNumber: $phoneNumber, otpCode: $otpCode) {
+    accessToken
+    refreshToken
+    expire
+  }
+}
+
+query getMatomoTrackingId($serviceCode: String!) {
+  sso_service(serviceCode: $serviceCode) {
+    matomoTrackingID
+  }
+}
+
+mutation loginGuest {
+  sso_loginGuest {
+    accessToken
+    refreshToken
+    expire
+  }
+}
+

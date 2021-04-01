@@ -11,25 +11,27 @@
             android:layout_height="match_parent"
             android:background="@color/colorBackground">
 
-            <android.support.v7.widget.AppCompatImageView
+            <android.support.v7.widget.AppCompatImageButton
                 android:id="@+id/btn_back"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/padding_20"
                 android:layout_marginTop="@dimen/padding_20"
+                android:background="@null"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_back" />
+                android:src="@drawable/ic_back" />
 
-            <android.support.v7.widget.AppCompatImageView
+            <android.support.v7.widget.AppCompatImageButton
                 android:id="@+id/btn_close"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/padding_20"
                 android:layout_marginEnd="@dimen/padding_20"
+                android:background="@null"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_close" />
+                android:src="@drawable/ic_close" />
 
             <android.support.design.card.MaterialCardView
                 android:id="@+id/cd_sabayId"
@@ -291,7 +293,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_marginTop="@dimen/padding_10"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     android:background="@drawable/payment_button"
                     style="?android:attr/borderlessButtonStyle"
                     android:gravity="left|center_vertical">
@@ -321,21 +323,6 @@
                         android:text="bonus"
                         android:textColor="@color/colorWhite700" />
                 </LinearLayout>
-
-                <android.support.v7.widget.AppCompatButton
-                    android:id="@+id/btn_pre_auth_pay"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/padding_10"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:textAppearance="@style/MyAppearanceBody1"
-                    android:background="@drawable/payment_button"
-                    android:text="ABA Bank"
-                    android:textAllCaps="false"
-                    android:gravity="left|center_vertical"
-                    android:paddingLeft="@dimen/padding_20"
-                    android:textColor="@color/colorYellow"
-                    android:visibility="gone" />
 
                 <LinearLayout
                     android:id="@+id/btn_third_bank_provider"

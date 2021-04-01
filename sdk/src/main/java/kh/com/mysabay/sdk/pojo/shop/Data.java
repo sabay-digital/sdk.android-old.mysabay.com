@@ -162,22 +162,4 @@ public class Data implements Parcelable {
         return 0;
     }
 
-    public String toUSDPrice() {
-        return "$ " + this.priceInUsd;
-    }
-
-    public String toSabayCoin() {
-        return  this.priceInSc + " SC";
-    }
-
-    public String toRoundSabayCoin() {
-        return  Math.round(this.priceInSc) + " SC";
-    }
-
-    public String toRoundSabayGold() {
-        return  Math.round(this.priceInSG) + " SG";
-    }
-
-    public static final String PLAY_STORE = "play_store";
-
 }

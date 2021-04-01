@@ -7,20 +7,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
+        android:background="@color/colorBackground"
         tools:context=".ui.activity.LoginActivity">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorBackground"
             >
-            <android.support.v7.widget.AppCompatImageView
+            <android.support.v7.widget.AppCompatImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/padding_20"
+                android:background="@null"
+                android:layout_marginTop="@dimen/padding_20"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:src="@drawable/ic_back" />
+            <android.support.v7.widget.AppCompatImageButton
                 android:id="@+id/btn_close"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/padding_20"
                 android:layout_marginEnd="@dimen/padding_20"
+                android:background="@null"
                 android:layout_alignParentRight="true"
-                app:srcCompat="@drawable/ic_close" />
+                android:src="@drawable/ic_close" />
             <android.support.v7.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -43,7 +54,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginBottom="@dimen/padding_30"
-                        android:text="@string/mysabay_account"
+                        android:text="@string/login_with_my_sabay"
+                        android:textAllCaps="true"
                         android:textAppearance="@style/BaseAppearanceTitle.MyAppearanceTitle"
                         android:textStyle="bold" />
 
@@ -67,6 +79,7 @@
                         android:inputType="text"
                         android:padding="@dimen/padding_8"
                         android:singleLine="true"
+                        android:imeOptions = "flagNoFullscreen"
                         android:textColor="@color/secondary"
                         android:textCursorDrawable="@null"
                         app:hintTextAppearance="@style/MyAppearanceBody1.Primary" />
@@ -91,6 +104,7 @@
                         android:inputType="textPassword"
                         android:padding="@dimen/padding_8"
                         android:singleLine="true"
+                        android:imeOptions = "flagNoFullscreen"
                         android:textColor="@color/secondary"
                         android:textCursorDrawable="@null"
                         app:hintTextAppearance="@style/MyAppearanceBody1.Primary" />
@@ -102,13 +116,23 @@
                         android:layout_marginTop="@dimen/padding_20"
                         android:layout_marginEnd="@dimen/padding_20"
                         android:layout_marginBottom="@dimen/padding_30"
-                        android:gravity="center"
+                        android:gravity="bottom|center"
                         android:orientation="vertical">
-
+                        <android.support.v7.widget.AppCompatTextView
+                            android:id="@+id/tv_register_account"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:text="@string/i_want_to_regiser_for_a_mysabay_account"
+                            android:textColor="@color/colorYellow"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
                         <android.support.v7.widget.AppCompatButton
                             android:id="@+id/btn_login"
                             style="@style/ButtonPrimary"
-                            android:layout_width="200dp"
+                            android:layout_width="250dp"
+                            android:layout_height="40dp"
+                            android:layout_marginTop="@dimen/padding_15"
                             android:layout_marginBottom="@dimen/padding_10"
                             android:fontFamily="@font/font_battambang_regular"
                             android:gravity="center"
@@ -123,7 +147,11 @@
             <include
                 android:id="@+id/view_empty"
                 layout="@layout/view_empty"
-                android:visibility="visible" />
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:visibility="visible"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent" />
 
         </RelativeLayout>
     </android.support.v4.widget.NestedScrollView>

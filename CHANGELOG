@@ -1,5 +1,16 @@
 Sabay currently publishes android SDK with version below:
 
+-Latest 
+    - Move from Rest API to gateway API (GraphQL)
+    - Change Login process (Phone Number)
+        - If phone number has existing MySabay account so it need to verify MySabay account
+            - Enter password to verify account or you can create new account here
+        - If phone number doesn't have MySabay account so OTP has been sent.
+    - Change Login process (MySabay account)
+        - Move from login with MySabay Login WebView to gateway API
+    - MySabay account Registration
+    - Login with facebook
+
 -Latest: 1.0.18
     - Wing payment
     - Check application install manually via APK or Google Play store.

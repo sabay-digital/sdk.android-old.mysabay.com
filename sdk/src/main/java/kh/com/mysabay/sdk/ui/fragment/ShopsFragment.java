@@ -23,6 +23,7 @@ import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.gson.Gson;
+import com.mysabay.sdk.GetExchangeRateQuery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
@@ -33,18 +34,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import kh.com.mysabay.sdk.BuildConfig;
+import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.adapter.ShopAdapter;
 import kh.com.mysabay.sdk.base.BaseFragment;
 import kh.com.mysabay.sdk.billing.Security;
+import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.FmShopBinding;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.googleVerify.DataBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
+import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
-import kh.com.mysabay.sdk.pojo.shop.Data;
+import kh.com.mysabay.sdk.pojo.profile.Wallet;
+import kh.com.mysabay.sdk.pojo.shop.ShopItem;
+import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
@@ -63,9 +69,10 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
     private GridLayoutManager mLayoutManager;
     private ClipboardManager myClipboard;
     private ClipData myClip;
+    private ShopItem shopItem;
     private String mySabayId;
 
-    private static String PURCHASE_ID = "android.test.purchased";
+    private static String PURCHASE_ID = "kh.com.sabay.aog.iap.5_usd";
     private BillingClient billingClient;
     public static final String PREF_FILE= "MyPref";
     public static final String PURCHASE_KEY= "purchase";
@@ -92,11 +99,16 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
         mViewBinding.rcv.setBackgroundResource(colorCodeBackground());
         mViewBinding.cdSabayId.setBackgroundResource(colorCodeBackground());
 
+        if (getContext() != null)
+            viewModel.getShopFromServerGraphQL(getContext());
+
         mAdapter = new ShopAdapter(v.getContext(), item -> {
-            //    if (!BuildConfig.DEBUG)
-            if (verifyInstallerId(getActivity())) {
-                PURCHASE_ID = item.packageId;
-                purchase(v, item.packageId);
+//    if (!BuildConfig.DEBUG) {
+            if (!verifyInstallerId(getActivity())) {
+//                PURCHASE_ID = item.packageId;
+                viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), item.id);
+                shopItem = item;
+                purchase(v, PURCHASE_ID);
             } else {
                 MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
             }
@@ -108,52 +120,40 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
 
         onBillingSetupFinished();
 
-        MySabaySDK.getInstance().getUserProfile(info -> {
-            Gson g = new Gson();
-            UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
-            mySabayId = userProfile.data.mysabayUserId.toString();
-            mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), userProfile.data.mysabayUserId.toString()));
-        });
-
         viewModel.getNetworkState().observe(this, this::showProgressState);
         viewModel.getShopItem().observe(this, item -> {
             mLayoutManager.setSpanCount(getResources().getInteger(R.integer.layout_size));
             mViewBinding.rcv.setLayoutManager(mLayoutManager);
             mAdapter.clear();
-            for (Data ob : item.data) {
-                mAdapter.insert(ob);
-            }
-
+            mAdapter.insert(item);
             mAdapter.notifyDataSetChanged();
         });
+
+        MySabaySDK.getInstance().trackPageView(getContext(), "/sdk/product-screen", "/sdk/product-screen");
     }
 
     @Override
     public void assignValues() {
         viewModel.getNetworkState().observe(this, this::showProgressState);
-
-        if (getContext() != null)
-            viewModel.getShopFromServer(getContext());
-
         MySabaySDK.getInstance().getUserProfile(info -> {
-            Gson g = new Gson();
-            UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
-            if (userProfile.data.balance.coin > 0) {
-                String sabayCoin = "<b>" + userProfile.data.toSabayCoin() + "</b> ";
-                mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
-            }
-            if (userProfile.data.balance.gold > 0) {
-                String sabayGold = "<b>" + userProfile.data.toSabayGold() + "</b> ";
-                mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
-                mViewBinding.deviderBalance.setVisibility(userProfile.data.balance.coin > 0 ? View.VISIBLE : View.GONE);
-            } else {
-                mViewBinding.tvSabayGoldBalance.setVisibility(View.GONE);
-                mViewBinding.deviderBalance.setVisibility(View.GONE);
-            }
-            if (userProfile.data.balance.gold > 0 || userProfile.data.balance.coin > 0) {
+            if (info != null) {
+                Gson g = new Gson();
+                UserProfileItem userProfile = g.fromJson(info, UserProfileItem.class);
+                mViewBinding.tvMysabayid.setText(String.format(getString(R.string.mysabay_id), userProfile.persona.mysabayUserID));
                 mViewBinding.sabayBalance.setVisibility(View.VISIBLE);
+                for (Wallet wallet: userProfile.wallet) {
+                    LogUtil.info("Balance", wallet.balance + "" + wallet.assetCode);
+                  if(wallet.assetCode.equals("SC")) {
+                      String sabayCoin = "<b>" + wallet.toSabayCoin() + "</b>";
+                      mViewBinding.tvSabayCoinBalance.setText(Html.fromHtml(sabayCoin));
+                  } else if (wallet.assetCode.equals("SG")) {
+                      String sabayGold = "<b>" + wallet.toSabayGold() + "</b>";
+                      mViewBinding.tvSabayGoldBalance.setText(Html.fromHtml(sabayGold));
+                      mViewBinding.deviderBalance.setVisibility(wallet.balance > 0 ? View.VISIBLE : View.GONE);
+                  }
+                }
             } else {
-                mViewBinding.sabayBalance.setVisibility(View.GONE);
+                MessageUtil.displayDialog(getActivity(), "Error get user Profile");
             }
         });
     }
@@ -346,8 +346,8 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                             purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
                     receiptBody.withData(dataBody);
                     googleVerifyBody.withReceipt(receiptBody);
-                    viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
-
+                    ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
+                    createPayment(getContext(), shopItem, provider, Globals.IAP_PROVIDER, googleVerifyBody);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -385,6 +385,32 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public void createPayment(Context context, ShopItem item, ProviderResponse provider, String type, GoogleVerifyBody body) {
+        viewModel.getExchangeRate(new DataCallback<GetExchangeRateQuery.Sso_service>() {
+            @Override
+            public void onSuccess(GetExchangeRateQuery.Sso_service response) {
+                viewModel.createPayment(context, item, provider, type, response.usdkhr(), new DataCallback<Data>() {
+                    @Override
+                    public void onSuccess(Data response) {
+                        LogUtil.info("Get-payment-detail", new Gson().toJson(response));
+                        if (response != null)
+                            viewModel.postToVerifyAppInPurchase(context, response, response.paymentAddress, body);
+                    }
+
+                    @Override
+                    public void onFailed(Object error) {
+                        LogUtil.info("Get-payment-error", error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                MessageUtil.displayDialog(context, error.toString());
+            }
+        });
     }
 
     @Override

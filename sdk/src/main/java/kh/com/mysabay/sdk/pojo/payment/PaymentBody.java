@@ -72,6 +72,8 @@ public class PaymentBody implements Parcelable {
         this.packageCode = packageCode;
     }
 
+    public PaymentBody() {}
+
     public PaymentBody withUuid(String uuid) {
         this.uuid = uuid;
         return this;

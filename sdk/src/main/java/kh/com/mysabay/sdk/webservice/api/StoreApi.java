@@ -3,18 +3,19 @@ package kh.com.mysabay.sdk.webservice.api;
 import io.reactivex.Observable;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
-import kh.com.mysabay.sdk.pojo.mysabay.MySabayItem;
-import kh.com.mysabay.sdk.pojo.payment.PaymentBody;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
-import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.ThirdPartyItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.ResponseItem;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.Url;
 
 /**
  * Created by Tan Phirum on 3/13/20
@@ -22,29 +23,33 @@ import retrofit2.http.Query;
  */
 public interface StoreApi {
 
-    @GET("api/v1.7/store")
-    Observable<ShopItem> getShopItem(@Header("app_secret") String appSecret, @Header("Authorization") String token);
-
-    @GET("api/v1.7/checkout")
-    Observable<MySabayItem> getMySabayCheckout(@Header("app_secret") String appSecret, @Header("Authorization") String token, @Query("package_code") String packageCode);
-
-
-//    @GET("api/v1.7/checkout")
-
     @GET("api/v1.7/cashier")
     Observable<ThirdPartyItem> get3PartyCheckout(@Header("app_secret") String appSecret, @Header("Authorization") String token, @Query("uuid") String uuid);
 
-    @POST("api/v1.7/verify_receipt/google")
-    Observable<GoogleVerifyResponse> postToVerifyGoogle(@Header("app_secret") String appSecret, @Header("Authorization") String token,
+    @POST
+    Observable<GoogleVerifyResponse> postToVerifyGoogle(@Url String url,
+                                                        @Header("Authorization") String token,
                                                         @Body() GoogleVerifyBody body);
 
-    @POST("api/v1.7/charge/auth")
-    Observable<PaymentResponseItem> postToPaid(@Header("app_secret") String appSecret, @Header("Authorization") String token,
-                                               @Body() PaymentBody body);
+    @FormUrlEncoded
+    @POST
+    @Headers("Content-Type: application/x-www-form-urlencoded")
+    Observable<PaymentResponseItem> postToPaid(@Url String url,
+                                               @Header("Authorization") String token,
+                                               @Field("hash") String hash,
+                                               @Field("signature") String signature,
+                                               @Field("public_key") String publicKey,
+                                               @Field("payment_address") String payment);
 
-    @POST("api/v1.7/charge/onetime")
-    Observable<ResponseItem> postToChargeOneTime(@Header("app_secret") String appSecret, @Header("Authorization") String token,
-                                                 @Body() PaymentBody body);
+    @FormUrlEncoded
+    @POST
+    @Headers("Content-Type: application/x-www-form-urlencoded")
+    Observable<ResponseItem> postToChargeOneTime(@Url String url,
+                                                 @Header("Authorization") String token,
+                                                 @Field("hash") String hash,
+                                                 @Field("signature") String signature,
+                                                 @Field("public_key") String publicKey,
+                                                 @Field("payment_address") String payment);
 
 
 }

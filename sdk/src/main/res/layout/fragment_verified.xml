@@ -17,18 +17,18 @@
         android:layout_gravity="center_horizontal"
         android:orientation="vertical">
 
-        <android.support.v7.widget.AppCompatImageView
+        <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_marginStart="@dimen/padding_20"
             android:layout_marginTop="@dimen/padding_20"
-            android:background="@color/colorBackground"
+            android:background="@null"
             android:padding="@dimen/padding_5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_back" />
+            android:src="@drawable/ic_back" />
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="wrap_content"
@@ -86,6 +86,7 @@
                 android:textColor="@color/secondary"
                 android:textIsSelectable="false"
                 android:textSize="24dp"
+                android:imeOptions = "flagNoFullscreen"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tv_show_otp"
@@ -97,6 +98,18 @@
                 tools:ignore="SpUsage" />
 
             <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/tv_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="timer"
+                android:textSize="12sp"
+                android:textColor="@color/secondary"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/edt_verify_code" />
+
+            <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/tv_resend_otp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -106,25 +119,7 @@
                 android:textColor="@color/secondary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/edt_verify_code" />
-
-            <android.support.v7.widget.AppCompatButton
-                android:id="@+id/btn_verify"
-                style="@style/ButtonPrimary"
-                android:layout_width="wrap_content"
-                android:gravity="center"
-                android:paddingStart="@dimen/padding_35"
-                android:paddingEnd="@dimen/padding_35"
-                android:stateListAnimator="@null"
-                android:text="@string/confirm"
-                android:textAppearance="@style/MyAppearanceBody1"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginTop="@dimen/padding_20"
-                android:layout_marginBottom="@dimen/padding_20"
-                app:layout_constraintTop_toBottomOf="@+id/tv_resend_otp" />
-
+                app:layout_constraintTop_toBottomOf="@+id/tv_timer" />
         </android.support.constraint.ConstraintLayout>
         <include
             android:id="@+id/view_empty"

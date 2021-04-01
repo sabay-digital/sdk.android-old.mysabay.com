@@ -1,0 +1,300 @@
+{
+  "data": {
+    "store_listProduct": {
+      "products": [
+        {
+          "id": "5fd33b4c7fe7980011d83bde",
+          "name": "500 Diamonds",
+          "sku": null,
+          "barcode": null,
+          "description": null,
+          "shortDescription": null,
+          "categories": [
+            {
+              "id": "5fd33099ebd5e300110d3fea",
+              "parentId": null,
+              "rootId": null
+            }
+          ],
+          "brandId": null,
+          "tags": [],
+          "isVariant": false,
+          "attributes": [],
+          "salePrice": 9.99,
+          "comparePrice": 9.99,
+          "cost": null,
+          "currencyCode": "USD",
+          "image": null,
+          "gallery": null,
+          "stockOnHand": 0,
+          "isInventoryTracking": false,
+          "isReturnable": false,
+          "reorderQuantity": 0,
+          "isActive": true,
+          "serviceCode": "aog",
+          "productTemplateId": "5fd331e27fe7980011d83bd6",
+          "properties": {
+            "displayName": "500 Diamond",
+            "packageCode": "500_diamond",
+            "priceInSabayCoin": "400",
+            "priceInSabayGold": "400",
+            "paymentServiceProvider": [
+              {
+                "groupId": "5fd331e27fe7980011d83bd6",
+                "packageId": "kh.com.sabay.aog.iap.10_usd",
+                "provider": [
+                  {
+                    "label": "+50 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd9",
+                    "value": 550
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd7",
+                "packageId": "kh.com.sabay.aog.telco.2_usd",
+                "provider": [
+                  {
+                    "label": "+60 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd1",
+                    "value": 560
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd8",
+                "packageId": "kh.com.sabay.aog.local.2_usd",
+                "provider": [
+                  {
+                    "label": "+70 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd2",
+                    "value": 570
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "5fd338697fe7980011d83bdc",
+          "name": "50 Diamonds",
+          "sku": null,
+          "barcode": null,
+          "description": null,
+          "shortDescription": null,
+          "categories": [
+            {
+              "id": "5fd33099ebd5e300110d3fea",
+              "parentId": null,
+              "rootId": null
+            }
+          ],
+          "brandId": null,
+          "tags": [],
+          "isVariant": false,
+          "attributes": [],
+          "salePrice": 0.99,
+          "comparePrice": 0.99,
+          "cost": null,
+          "currencyCode": "USD",
+          "image": null,
+          "gallery": null,
+          "stockOnHand": 0,
+          "isInventoryTracking": false,
+          "isReturnable": false,
+          "reorderQuantity": 0,
+          "isActive": true,
+          "serviceCode": "aog",
+          "productTemplateId": "5fd331e27fe7980011d83bd6",
+          "properties": {
+            "displayName": "50 Diamond",
+            "packageCode": "50_diamond",
+            "priceInSabayCoin": "40",
+            "priceInSabayGold": "40",
+            "paymentServiceProvider": [
+              {
+                "groupId": "5fd331e27fe7980011d83bd6",
+                "packageId": "kh.com.sabay.aog.iap.1_usd",
+                "provider": [
+                  {
+                    "label": "+5 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd9",
+                    "value": 55
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd7",
+                "packageId": "kh.com.sabay.aog.telco.1_usd",
+                "provider": [
+                  {
+                    "label": "+6 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd1",
+                    "value": 56
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd8",
+                "packageId": "kh.com.sabay.aog.local.1_usd",
+                "provider": [
+                  {
+                    "label": "+7 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd2",
+                    "value": 57
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "5fd339587fe7980011d83bdd",
+          "name": "100 Diamonds",
+          "sku": null,
+          "barcode": null,
+          "description": null,
+          "shortDescription": null,
+          "categories": [
+            {
+              "id": "5fd33099ebd5e300110d3fea",
+              "parentId": null,
+              "rootId": null
+            }
+          ],
+          "brandId": null,
+          "tags": [],
+          "isVariant": false,
+          "attributes": [],
+          "salePrice": 1.99,
+          "comparePrice": 1.99,
+          "cost": null,
+          "currencyCode": "USD",
+          "image": null,
+          "gallery": null,
+          "stockOnHand": 0,
+          "isInventoryTracking": false,
+          "isReturnable": false,
+          "reorderQuantity": 0,
+          "isActive": true,
+          "serviceCode": "aog",
+          "productTemplateId": "5fd331e27fe7980011d83bd6",
+          "properties": {
+            "displayName": "100 Diamond",
+            "packageCode": "100_diamond",
+            "priceInSabayCoin": "80",
+            "priceInSabayGold": "80",
+            "paymentServiceProvider": [
+              {
+                "groupId": "5fd331e27fe7980011d83bd6",
+                "packageId": "kh.com.sabay.aog.iap.2_usd",
+                "provider": [
+                  {
+                    "label": "+10 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd9",
+                    "value": 110
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd7",
+                "packageId": "kh.com.sabay.aog.telco.2_usd",
+                "provider": [
+                  {
+                    "label": "+12 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd1",
+                    "value": 112
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd8",
+                "packageId": "kh.com.sabay.aog.local.2_usd",
+                "provider": [
+                  {
+                    "label": "+14 Diamonds",
+                    "id": "5fd331e27fe7980011d83bd2",
+                    "value": 114
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "5fd9737b7fe7980011d83bdf",
+          "name": "100 Diamond",
+          "sku": null,
+          "barcode": null,
+          "description": null,
+          "shortDescription": null,
+          "categories": [
+            {
+              "id": "5fd33099ebd5e300110d3fea",
+              "parentId": null,
+              "rootId": null
+            }
+          ],
+          "brandId": null,
+          "tags": [],
+          "isVariant": false,
+          "attributes": [],
+          "salePrice": 1.99,
+          "comparePrice": 1.99,
+          "cost": null,
+          "currencyCode": "USD",
+          "image": null,
+          "gallery": null,
+          "stockOnHand": 0,
+          "isInventoryTracking": false,
+          "isReturnable": false,
+          "reorderQuantity": 0,
+          "isActive": true,
+          "serviceCode": "aog",
+          "productTemplateId": "5fd331e27fe7980011d83bd6",
+          "properties": {
+            "displayName": "100 Diamond",
+            "packageCode": "100_diamond",
+            "priceInSabayCoin": "80",
+            "priceInSabayGold": "80",
+            "paymentServiceProvider": [
+              {
+                "groupId": "5fd331e27fe7980011d83bd6",
+                "packageId": "kh.com.sabay.aog.iap.2_usd",
+                "provider": [
+                  {
+                    "label": "+10 gems",
+                    "id": "5fd331e27fe7980011d83bd9",
+                    "value": 110
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd7",
+                "packageId": "kh.com.sabay.aog.telco.2_usd",
+                "provider": [
+                  {
+                    "label": "+12 gems",
+                    "id": "5fd331e27fe7980011d83bd1",
+                    "value": 112
+                  }
+                ]
+              },
+              {
+                "groupId": "5fd331e27fe7980011d83bd8",
+                "packageId": "kh.com.sabay.aog.local.2_usd",
+                "provider": [
+                  {
+                    "label": "+14 gems",
+                    "id": "5fd331e27fe7980011d83bd2",
+                    "value": 114
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

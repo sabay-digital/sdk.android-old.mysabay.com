@@ -50,7 +50,7 @@ public class RSAEncryptUtils {
     public RSAEncryptUtils(Context context) {
         LogUtil.debug(TAG, "init");
         initKeyStore(context);
-        createNewKeys(context, context.getString(R.string.alias));
+        createNewKeys(context, "ALIAS");
         initCipher();
     }
 

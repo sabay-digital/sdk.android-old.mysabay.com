@@ -200,7 +200,6 @@ public abstract class BaseFragment<D extends ViewDataBinding, V extends ViewMode
                 break;
             case NetworkState.Status.ERROR:
                 showProgress(false);
-                Toast.makeText(getContext(), initialLoadState.message(), Toast.LENGTH_SHORT).show();
                 break;
             case NetworkState.Status.LOADING:
             default:

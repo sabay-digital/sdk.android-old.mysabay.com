@@ -15,6 +15,11 @@
     <string name="title_retry">Retry</string>
     <string name="msg_phone_incorrect">your phone number format is incorrect</string>
     <string name="msg_input_phone">Input phone number</string>
+    <string name="msg_input_username">Input username</string>
+    <string name="msg_username_already_exist">Username already exists</string>
+    <string name="msg_input_password">Input password</string>
+    <string name="msg_input_confirm_password">Input Confirm Password</string>
+    <string name="msg_confirm_password_not_match">Password do not match</string>
     <string name="verify_code_required">verify code is required</string>
     <string name="pay">pay %s</string>
     <string name="mysabay_id">MySabay ID: %s</string>
@@ -34,14 +39,21 @@
     <string name="please_select_your_preferred_partnered_payment_provider">Please select your preferred payment provider</string>
     <string name="logging_with_phone_number_desc">Logging in with phone number automatically creates a MySabay account if you do not already own one.</string>
     <string name="mysabay_account">MySabay Account</string>
+    <string name="verify_mysabay">Verify Mysabay</string>
+    <string name="login_with_my_sabay">Login with MySabay</string>
+    <string name="create_my_sabay">Create MySabay Account</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
     <string name="confirm_mysabay">Confirm MySabay</string>
     <string name="create_new_account">I want a new account</string>
     <string name="existing_mysabay_account_desc">We’ve found an existing MySabay account associated with the phone number you provided.</string>
     <string name="enter_your_password">Enter your password to confirm your MySabay Account or click ‘I want a new account’ to get a new account.</string>
-    <string name="facebook_app_id">670084857261907</string>
-    <string name="fb_login_protocol_scheme">fb670084857261907</string>
+    <string name="create">Create</string>
+    <string name="register">Register</string>
+    <string name="i_want_to_regiser_for_a_mysabay_account">I want to register for a MySabay account</string>
+    <string name="facebook_app_id">587695748053859</string>
+    <string name="fb_login_protocol_scheme">fb587695748053859</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="application_do_not_support_in_app_purchase">Apps installed manually via APK do not support In-App Purchase. Please install the app from Google Play Store to use this feature.</string>

@@ -9,15 +9,16 @@
         android:layout_height="match_parent"
         android:background="@color/colorBackground">
 
-        <android.support.v7.widget.AppCompatImageView
+        <android.support.v7.widget.AppCompatImageButton
             android:id="@+id/btn_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/padding_20"
             android:layout_marginEnd="@dimen/padding_20"
+            android:background="@null"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_close" />
+            android:src="@drawable/ic_close" />
 
         <android.support.v7.widget.AppCompatTextView
             android:id="@+id/tv_shop"
@@ -117,7 +118,6 @@
             android:id="@+id/rcv"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="@dimen/padding_10"
             android:background="@color/colorBackground"
             app:layoutManager="android.support.v7.widget.GridLayoutManager"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -10,23 +10,36 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.List;
-
 /**
  * Created by Tan Phirum on 3/13/20
  * Gmail phirumtan@gmail.com
  */
 public class ShopItem implements Parcelable {
 
-    @SerializedName("status")
+    @SerializedName("id")
     @Expose
-    public Integer status;
-    @SerializedName("data")
+    public String id;
+    @SerializedName("salePrice")
     @Expose
-    public List<Data> data = null;
+    public Double salePrice;
+    @SerializedName("cost")
+    @Expose
+    public Double cost;
+    @SerializedName("currencyCode")
+    @Expose
+    public String currencyCode;
+    @SerializedName("isActive")
+    @Expose
+    public boolean isActive;
+    @SerializedName("serviceCode")
+    @Expose
+    public String serviceCode;
+
+    @SerializedName("properties")
+    @Expose
+    public Property properties;
+
     public final static Creator<ShopItem> CREATOR = new Creator<ShopItem>() {
-
-
         @SuppressWarnings({
                 "unchecked"
         })
@@ -41,8 +54,13 @@ public class ShopItem implements Parcelable {
     };
 
     protected ShopItem(Parcel in) {
-        this.status = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        in.readList(this.data, (kh.com.mysabay.sdk.pojo.shop.Data.class.getClassLoader()));
+        this.id = ((String) in.readValue((String.class.getClassLoader())));
+        this.isActive = ((boolean) in.readValue((boolean.class.getClassLoader())));
+        this.cost = ((Double) in.readValue((Double.class.getClassLoader())));
+        this.salePrice = ((Double) in.readValue((Double.class.getClassLoader())));
+        this.currencyCode = ((String) in.readValue((String.class.getClassLoader())));
+        this.serviceCode = ((String) in.readValue((String.class.getClassLoader())));
+        this.properties = ((Property) in.readValue((Property.class.getClassLoader())));
     }
 
     /**
@@ -52,33 +70,56 @@ public class ShopItem implements Parcelable {
     }
 
     /**
-     * @param data
-     * @param status
+     * @param id
+     * @param salePrice
+     * @param currencyCode
+     * @param properties
      */
-    public ShopItem(Integer status, List<Data> data) {
+    public ShopItem(String id, Double salePrice, String currencyCode, Property properties) {
         super();
-        this.status = status;
-        this.data = data;
+        this.id = id;
+        this.salePrice = salePrice;
+        this.currencyCode = currencyCode;
+        this.properties = properties;
     }
 
-    public ShopItem withStatus(Integer status) {
-        this.status = status;
+    public ShopItem(String id, Property properties) {
+        super();
+        this.id = id;
+        this.properties = properties;
+    }
+
+    public ShopItem(String id) {
+        this.id = id;
+    }
+
+    public ShopItem withId(String id) {
+        this.id = id;
         return this;
     }
 
-    public ShopItem withData(List<Data> data) {
-        this.data = data;
+    public ShopItem withSalePrice(Double salePrice) {
+        this.salePrice = salePrice;
+        return this;
+    }
+
+
+    public  ShopItem withProperties(Property properties) {
+        this.properties = properties;
         return this;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("status", status).append("data", data).toString();
+        return new ToStringBuilder(this).append("id", id).append("salePrice", salePrice)
+                .append("cost", cost).append("salePrice", salePrice).append("currencyCode", currencyCode)
+                .append("properties", properties).append("serviceCode", serviceCode).append("isActive", isActive)
+                .toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(data).append(status).toHashCode();
+        return new HashCodeBuilder().append(salePrice).append(properties).toHashCode();
     }
 
     @Override
@@ -90,16 +131,27 @@ public class ShopItem implements Parcelable {
             return false;
         }
         ShopItem rhs = ((ShopItem) other);
-        return new EqualsBuilder().append(data, rhs.data).append(status, rhs.status).isEquals();
+        return new EqualsBuilder().append(id, rhs.id).append(salePrice, rhs.salePrice)
+                .append(serviceCode, serviceCode).append(cost, rhs.cost)
+                .append(currencyCode, rhs.currencyCode).append(properties, rhs.properties).isEquals();
     }
 
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(status);
-        dest.writeList(data);
+        dest.writeValue(id);
+        dest.writeValue(salePrice);
+        dest.writeValue(cost);
+        dest.writeValue(isActive);
+        dest.writeValue(currencyCode);
+        dest.writeValue(serviceCode);
+        dest.writeValue(salePrice);
+        dest.writeValue(properties);
     }
 
     public int describeContents() {
         return 0;
     }
 
+    public String toUSDPrice() {
+        return String.format("%s %s", "$", this.salePrice);
+    }
 }

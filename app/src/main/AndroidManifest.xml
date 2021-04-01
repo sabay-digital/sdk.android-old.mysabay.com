@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="kh.com.mysabay.sample">
 
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -15,8 +16,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/SdkAppTheme"
-        android:windowSoftInputMode="adjustResize"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:replace="android:name">
+        <activity android:name=".WebViewActivity"></activity>
+        <activity android:name=".FunctionCallActivity" />
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize">

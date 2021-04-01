@@ -15,6 +15,7 @@
     <style name="SdkAppTheme.NoActionBar.FullScreen">
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowEnableSplitTouch">false</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>

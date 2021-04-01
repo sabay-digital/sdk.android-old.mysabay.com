@@ -15,8 +15,13 @@
     <string name="msg_no_data">មិនមានទិន្នន័យ</string>
     <string name="title_retry">ម្តងទៀត</string>
     <string name="msg_phone_incorrect">ទម្រង់លេខទូរស័ព្ទរបស់លោកអ្នកមិនត្រឹមត្រូវទេ</string>
+    <string name="msg_input_username">បញ្ចូលឈ្មោះអ្នកប្រើប្រាស់</string>
+    <string name="msg_username_already_exist">ឈ្មោះនេះមានរួចហើយ</string>
+    <string name="msg_input_password">បញ្ចូលពាក្យសម្ងាត់</string>
     <string name="msg_input_phone">បញ្ចូលលេខទូរស័ព្ទ</string>
     <string name="verify_code_required">លេខកូដចាំបាច់ត្រូវបញ្ចូល</string>
+    <string name="msg_input_confirm_password">បញ្ចូលលបញ្ជាក់ពាក្យសម្ងាត់</string>
+    <string name="msg_confirm_password_not_match">បញ្ជាក់ពាក្យសម្ងាត់មិនត្រឹមត្រូវ</string>
     <string name="pay">បង់ %s</string>
     <string name="mysabay_id">MySabay ID: %s</string>
     <string name="shops">ហាង</string>
@@ -35,11 +40,18 @@
     <string name="please_select_your_preferred_partnered_payment_provider">ជ្រើសរើសអ្នកផ្តល់ការទូទាត់ជាដៃគូសម្រាប់ការអនុញ្ញាតក្នុងការទូទាត់លើកក្រោយ។</string>
     <string name="logging_with_phone_number_desc">Logging in with phone number automatically creates a MySabay account if you do not already own one.</string>
     <string name="mysabay_account">គណនី MySabay</string>
+    <string name="verify_mysabay">បញ្ជាក់គណនី MySabay</string>
+    <string name="login_with_my_sabay">ចូល​ជា​មួយ​នឹង MySabay</string>
+    <string name="create_my_sabay">បង្កើត MySabay Account</string>
     <string name="username">ឈ្មោះអ្នកប្រើប្រាស់</string>
     <string name="password">ពាក្យសម្ងាត់</string>
+    <string name="confirm_password">បញ្ជាក់ពាក្យសម្ងាត់</string>
     <string name="confirm_mysabay">Confirm MySabay</string>
     <string name="create_new_account">បង្កើតគណនីថ្មី​</string>
     <string name="existing_mysabay_account_desc">We’ve found an existing MySabay account associated with the phone number you provided.</string>
     <string name="enter_your_password">Enter your password to confirm your MySabay Account or click ‘I want a new account’ to get a new account.</string>
     <string name="application_do_not_support_in_app_purchase">Apps installed manually via APK do not support In-App Purchase. Please install the app from Google Play Store to use this feature.</string>
+    <string name="create">បង្កើត</string>
+    <string name="register">បង្កើតគណនី</string>
+    <string name="i_want_to_regiser_for_a_mysabay_account">ខ្ញំុចង់បង្កើតគណនី MySabay​</string>
 </resources>

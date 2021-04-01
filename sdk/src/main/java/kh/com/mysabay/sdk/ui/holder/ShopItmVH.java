@@ -45,6 +45,7 @@ public class ShopItmVH extends RecyclerView.ViewHolder implements View.OnClickLi
         if (v.getId() == R.id.card) {
             if (v.getContext() instanceof StoreActivity) {
                 AppItem item = new Gson().fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
+                LogUtil.info("enableLocalPay", item.enableLocalPay + "");
                 if (item.enableLocalPay)
                     ((StoreActivity) v.getContext()).initAddFragment(PaymentFm.newInstance(viewBinding.getItem()), PaymentFm.TAG, true);
                 else

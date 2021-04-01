@@ -87,6 +87,7 @@ public class MySabayLoginFm extends BaseFragment<FmMysabayLoginBinding, UserApiV
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 
+                LogUtil.info("Scheme URL", request.getUrl().toString());
                 LogUtil.debug(TAG, "url =" + request.getUrl() + " token =" + request.getUrl().getQueryParameter("access_token"));
                 String token = request.getUrl().getQueryParameter("access_token");
                 String refreshToken = request.getUrl().getQueryParameter("refresh_token");
@@ -94,11 +95,11 @@ public class MySabayLoginFm extends BaseFragment<FmMysabayLoginBinding, UserApiV
 
                 if (!StringUtils.isBlank(token) && getActivity() != null) {
                     if (!StringUtils.isBlank(token) && !StringUtils.isBlank(refreshToken)) {
-                        AppItem appItem = new AppItem(MySabaySDK.getInstance().getSdkConfiguration().appSecret, token, refreshToken, "", Long.parseLong(expire));
+                        AppItem appItem = new AppItem(null, null, token, refreshToken, "", Long.parseLong(expire));
                         String encrypted = gson.toJson(appItem);
                         MySabaySDK.getInstance().saveAppItem(encrypted);
                     }
-                    getActivity().runOnUiThread(() -> viewModel.postToGetUserProfile(getActivity(), token));
+                    getActivity().runOnUiThread(() -> viewModel.getUserProfile(getActivity(), token));
                 }
 
                 return super.shouldInterceptRequest(view, request);
@@ -113,6 +114,7 @@ public class MySabayLoginFm extends BaseFragment<FmMysabayLoginBinding, UserApiV
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                LogUtil.info("URL", url);
                 mViewBinding.progressBar.setVisibility(View.GONE);
             }
         });
@@ -122,7 +124,7 @@ public class MySabayLoginFm extends BaseFragment<FmMysabayLoginBinding, UserApiV
     public void assignValues() {
         if (StringUtils.isBlank(mDeepLink)) {
             Map<String, String> header = new HashMap<>();
-            header.put("app_secret", MySabaySDK.getInstance().getSdkConfiguration().appSecret);
+            header.put("app_secret", MySabaySDK.getInstance().appSecret());
             mViewBinding.wv.loadUrl(MySabaySDK.getInstance().userApiUrl() + Constant.mySabayUrl, header);
         } else
             mViewBinding.wv.loadUrl(mDeepLink);

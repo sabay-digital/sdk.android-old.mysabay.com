@@ -8,10 +8,12 @@ public class SubscribePayment {
 
     public final String type;
     public final Object data;
+    public final Object error;
 
-    public SubscribePayment(String type, Object data) {
+    public SubscribePayment(String type, Object data, Object error) {
         this.type = type;
         this.data = data;
+        this.error = error;
     }
 
     public String getType() {
