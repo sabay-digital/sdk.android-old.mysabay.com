@@ -123,7 +123,7 @@ Every purchase with MySabay SDK has to be recorded in our network. Call function
 
 ## In App Purchase
 
-To purchase with iOS in-app purchase, call below function. 
+To purchase with android in-app purchase, call below function. 
 
 ```java 
     MySabaySDK.getInstance().verifyInAppPurcahse(data, googleVerifyBody, new DataCallback<Object>() {

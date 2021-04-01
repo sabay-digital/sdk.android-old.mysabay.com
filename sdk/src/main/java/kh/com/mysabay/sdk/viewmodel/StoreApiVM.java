@@ -43,6 +43,7 @@ import kh.com.mysabay.sdk.SdkConfiguration;
 import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.NetworkState;
+import kh.com.mysabay.sdk.pojo.TrackingOrder.TrackingOrder;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
 import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
@@ -332,9 +333,19 @@ public class StoreApiVM extends ViewModel {
                                         data.withPaymentAddress(paymentAddress);
                                         data.withInvoiceId(invoiceId);
 
+                                        TrackingOrder trackingOrder = new TrackingOrder();
                                         EcommerceItems items = new EcommerceItems();
                                         items.addItem(new EcommerceItems.Item("sku").name(shopItem.properties.displayName).category("category").price((int) (shopItem.salePrice * 100)).quantity(1));
-                                        MySabaySDK.getInstance().trackOrder(context, "OrderId", items, (int) (shopItem.salePrice * 100), (int) (shopItem.salePrice * 100), 0, 0, 0);
+
+                                        trackingOrder.withEcommerceItems(items);
+                                        trackingOrder.withDiscount(0);
+                                        trackingOrder.withOrderId(data.invoiceId);
+                                        trackingOrder.withGrandTotal((int) (shopItem.salePrice * 100));
+                                        trackingOrder.withTax(0);
+                                        trackingOrder.withSubTotal((int) (shopItem.salePrice * 100));
+                                        trackingOrder.withShipping(0);
+
+                                        MySabaySDK.getInstance().trackOrder(context, trackingOrder);
                                         callback.onSuccess(data);
                                     } else {
                                         showErrorMsg(context, "Get Payment Detail is error");

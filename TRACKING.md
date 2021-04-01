@@ -12,6 +12,7 @@ This function can be called on screen that triggers when the user visits.
 	MySabaySDK.getInstance().trackPageView(context, "/activity_main", "/activity_main");
 ```
 
+- function: `trackPageView(Context context, String path, String title)`
 - Arguments:
     - `context`: the context which is linked to the Activity from which is called
     - `path`: screen path
@@ -22,9 +23,10 @@ This function can be called on screen that triggers when the user visits.
 This function can be called to track events triggered by the user's action or any processes of the app.
 
 ```java
-    MySabaySDK.getInstance().trackPageView(context, "/activity_main", "/activity_main");
+    MySabaySDK.getInstance().trackEvents(getContext(), "login", "tap", "register-mysabay");
 ```
 
+- Function: `trackEvent(Context context, String category, String action, String name)`
 - Arguments:
     - `context`: the context which is linked to the Activity from which is called
     - `category - String`: defines a category that the event should be in.
@@ -36,8 +38,20 @@ This function can be called to track events triggered by the user's action or an
 This function can be called to track when purchase is made in the app.
 
 ```java
-
+	MySabaySDK.getInstance().trackOrder(context, rackingOrder);
 ```
+
+- Function: `trackOrder(Context context, TrackingOrder trackingOrder)`
+- Arguments:
+    - `context`: the context which is linked to the Activity from which is called
+	- `trackingOrder` 
+	- `id: String`: defines a order id
+		- `items: [EcommerceItems]`: defines the array of items of order
+		- `grandTotal: Integer`: define total amount
+		- `subTotal: Integer`: defines the sub total of order
+		- `tax: Integer`: defines the tax of order
+		- `shipping: Integer`: defines the shipping cost of order
+		- `discount: Integer`: defines the discount of order
 
 ### Custom User ID
 

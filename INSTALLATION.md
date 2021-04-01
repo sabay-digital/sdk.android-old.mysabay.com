@@ -1,4 +1,4 @@
-# Installation for MySabay iOS SDK
+# Installation for MySabay Android SDK
 
 This is the quick guide to install MySabay Android SDK in your app.
 

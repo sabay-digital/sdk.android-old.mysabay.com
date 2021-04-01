@@ -59,13 +59,11 @@ import kh.com.mysabay.sdk.di.BaseAppComponent;
 import kh.com.mysabay.sdk.di.DaggerBaseAppComponent;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.NetworkState;
+import kh.com.mysabay.sdk.pojo.TrackingOrder.TrackingOrder;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
-import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
 import kh.com.mysabay.sdk.pojo.login.SubscribeLogin;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.SubscribePayment;
-import kh.com.mysabay.sdk.pojo.shop.Provider;
-import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.LoginActivity;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
@@ -525,8 +523,10 @@ public class MySabaySDK {
         getTracker(context).setUserId(userId);
     }
 
-    public void trackOrder(Context context, String orderId, EcommerceItems items, Integer grandTotal, Integer subTotal, Integer shipping, Integer tax, Integer disscount) {
-        TrackHelper.track().order(orderId, grandTotal).subTotal(subTotal).tax(tax).shipping(shipping).discount(disscount).items(items).with(getTracker(context));
+    public void trackOrder(Context context, TrackingOrder trackingOrder) {
+        TrackHelper.track().order(trackingOrder.orderId, trackingOrder.grandTotal).subTotal(trackingOrder.subTotal)
+                .tax(trackingOrder.tax).shipping(trackingOrder.shipping).discount(trackingOrder.discount)
+                .items(trackingOrder.ecommerceItems).with(getTracker(context));
     }
 
     public String appSecret() {

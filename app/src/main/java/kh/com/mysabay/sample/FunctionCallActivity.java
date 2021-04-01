@@ -23,6 +23,13 @@ import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.login.LoginResult;
 import com.google.gson.Gson;
 import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
@@ -80,6 +87,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
     private BillingClient billingClient;
     private static String PURCHASE_ID = "";
     GoogleVerifyBody googleVerifyBody = new GoogleVerifyBody();
+    private CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +95,15 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         mViewBinding = DataBindingUtil.setContentView(this, R.layout.activity_function_call);
         onBillingSetupFinished();
         mViewBinding.viewPb.setVisibility(View.GONE);
+        FacebookSdk.sdkInitialize(getApplicationContext());
+
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+        if (isLoggedIn) {
+            LogUtil.info("TAG", "Username is: " + Profile.getCurrentProfile().getName());
+            LogUtil.info("TAG", "Username is: " + accessToken.getToken());
+        }
+        callbackManager = CallbackManager.Factory.create();
 
         mViewBinding.btnLoginGuest.setOnClickListener(v -> {
             MySabaySDK.getInstance().loginGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
@@ -103,6 +120,38 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                     LogUtil.info("Error", error.toString());
                 }
             });
+        });
+
+        mViewBinding.btnLoginFb.setReadPermissions("email");
+        mViewBinding.btnLoginFb.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                LogUtil.info("OnSuccess", loginResult.getAccessToken().getToken());
+                MySabaySDK.getInstance().loginWithFacebook(loginResult.getAccessToken().getToken(), new DataCallback<LoginWithFacebookMutation.Sso_loginFacebook>() {
+                    @Override
+                    public void onSuccess(LoginWithFacebookMutation.Sso_loginFacebook response) {
+                        AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
+                        String encrypted = new Gson().toJson(appItem);
+                        MySabaySDK.getInstance().saveAppItem(encrypted);
+                        MessageUtil.displayDialog(FunctionCallActivity.this, "Login with Facebook success");
+                    }
+
+                    @Override
+                    public void onFailed(Object error) {
+                        MessageUtil.displayDialog(FunctionCallActivity.this, error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancel() {
+                LogUtil.info("OnCancel", "Canceled");
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                LogUtil.info("OnError", error.getMessage());
+            }
         });
 
         mViewBinding.btnLogout.setOnClickListener(new View.OnClickListener() {
@@ -180,20 +229,6 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                     });
                 }
             }
-        });
-
-        mViewBinding.btnLoginFb.setOnClickListener(v -> {
-            MySabaySDK.getInstance().loginWithFacebook("", new DataCallback<LoginWithFacebookMutation.Sso_loginFacebook>() {
-                @Override
-                public void onSuccess(LoginWithFacebookMutation.Sso_loginFacebook response) {
-
-                }
-
-                @Override
-                public void onFailed(Object error) {
-
-                }
-            });
         });
 
         mViewBinding.btnLogin.setOnClickListener(v -> {
@@ -902,6 +937,12 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                         .setPurchaseToken(purchase.getPurchaseToken())
                         .build();
         billingClient.consumeAsync(consumeParams, listener);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
 }
