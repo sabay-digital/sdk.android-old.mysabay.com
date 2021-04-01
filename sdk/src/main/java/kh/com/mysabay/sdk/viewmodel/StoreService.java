@@ -1,5 +1,7 @@
 package kh.com.mysabay.sdk.viewmodel;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,13 +22,19 @@ import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.type.Invoice_CreateInvoiceInput;
 import com.mysabay.sdk.type.Store_PagerInput;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
+
+import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.MySabaySDK;
+import kh.com.mysabay.sdk.billing.Security;
 import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyResponse;
+import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.PaymentResponseItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
@@ -40,20 +48,27 @@ public class StoreService extends ViewModel {
     private static final String TAG = UserApiVM.class.getSimpleName();
     private ApolloClient apolloClient;
     private final StoreRepo storeRepo;
+    private final MediatorLiveData<List<MySabayItemResponse>> mySabayItemMediatorLiveData;
 
     @Inject
     AppRxSchedulers appRxSchedulers;
+    @Inject
+    Gson gson;
 
     @Inject
     public StoreService(ApolloClient apolloClient, StoreRepo storeRepo) {
         this.apolloClient = apolloClient;
         this.storeRepo = storeRepo;
+        this.mySabayItemMediatorLiveData = new MediatorLiveData<>();
     }
 
-    public void getShopFromServerGraphQL(String serviceCode, String token, DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> callbackData) {
+    public LiveData<List<MySabayItemResponse>> getMySabayProvider() {
+        return mySabayItemMediatorLiveData;
+    }
+
+    public void getStoreProducts(DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> callbackData) {
         Store_PagerInput pager = Store_PagerInput.builder().page(1).limit(20).build();
-        apolloClient.query(new GetProductsByServiceCodeQuery(serviceCode, new Input<>(pager, true))).toBuilder()
-                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+        apolloClient.query(new GetProductsByServiceCodeQuery(MySabaySDK.getInstance().serviceCode(), new Input<>(pager, true))).toBuilder()
                 .build()
                 .enqueue(new ApolloCall.Callback<GetProductsByServiceCodeQuery.Data>() {
 
@@ -82,8 +97,8 @@ public class StoreService extends ViewModel {
         });
     }
 
-    public void getMySabayCheckout(String itemId, DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct> callbackData) {
-        apolloClient.query(new Checkout_getPaymentServiceProviderForProductQuery(itemId)).enqueue(new ApolloCall.Callback<Checkout_getPaymentServiceProviderForProductQuery.Data>() {
+    public void getPaymentServiceProvidersByProduct(String productId, DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct> callbackData) {
+        apolloClient.query(new Checkout_getPaymentServiceProviderForProductQuery(productId)).enqueue(new ApolloCall.Callback<Checkout_getPaymentServiceProviderForProductQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<Checkout_getPaymentServiceProviderForProductQuery.Data> response) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -93,6 +108,13 @@ public class StoreService extends ViewModel {
                             callbackData.onFailed(response.getErrors().get(0).getMessage());
                         } else {
                             if (response.getData() != null) {
+                                List<Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider> providers = response.getData().checkout_getPaymentServiceProviderForProduct().paymentServiceProviders();
+                                List<MySabayItemResponse> mySabayItemResponses = new ArrayList<>();
+                                for (Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider payment : providers) {
+                                    MySabayItemResponse paymentProvider = gson.fromJson(gson.toJson(payment), MySabayItemResponse.class);
+                                    mySabayItemResponses.add(paymentProvider);
+                                }
+                                mySabayItemMediatorLiveData.setValue(mySabayItemResponses);
                                 callbackData.onSuccess(response.getData().checkout_getPaymentServiceProviderForProduct());
                             } else {
                                 callbackData.onFailed("Get MySabay checkout failed");
@@ -109,7 +131,7 @@ public class StoreService extends ViewModel {
         });
     }
 
-    public void createPaymentProcess(String token, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
+    public void createPaymentProcess(List<Object> items, String pspId, double amount, String currency, DataCallback<Object> callbackData) {
         Input<String> serviceCode = Input.fromNullable(MySabaySDK.getInstance().serviceCode());
         apolloClient.query(new GetExchangeRateQuery(serviceCode)).toBuilder()
                 .build()
@@ -123,7 +145,7 @@ public class StoreService extends ViewModel {
                                     callbackData.onFailed(response.getErrors().get(0).getMessage());
                                 } else {
                                     if (response.getData() != null) {
-                                        createInvoice(token, items, provider, amount, currency, callbackData);
+                                        createInvoice(items, pspId, amount, currency, callbackData);
                                     } else {
                                         callbackData.onFailed("Get Exchange rate failed");
                                     }
@@ -144,7 +166,7 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void createInvoice(String token, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
+    public void createInvoice(List<Object> items, String pspId, double amount, String currency, DataCallback<Object> callbackData) {
         Invoice_CreateInvoiceInput obj = Invoice_CreateInvoiceInput.builder()
                 .items(items)
                 .amount(amount)
@@ -156,7 +178,7 @@ public class StoreService extends ViewModel {
 
         Input<Invoice_CreateInvoiceInput> input = Input.fromNullable(obj);
         apolloClient.mutate(new CreateInvoiceMutation(input)).toBuilder()
-                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + MySabaySDK.getInstance().currentToken()).build())
                 .build()
                 .enqueue(new ApolloCall.Callback<CreateInvoiceMutation.Data>() {
                     @Override
@@ -169,7 +191,7 @@ public class StoreService extends ViewModel {
                                 } else {
                                     if(response.getData() != null) {
                                         LogUtil.info("Create Invoice", "invoice");
-                                        getPaymentDetail(token, provider.id, response.getData().invoice_createInvoice().invoice().id(), callbackData);
+                                        getPaymentDetail(pspId, response.getData().invoice_createInvoice().invoice().id(), callbackData);
                                     } else {
                                         callbackData.onFailed("Create invoice failed");
                                     }
@@ -190,14 +212,14 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void getPaymentDetail(String token, String paymentProviderId, String invoiceId, DataCallback<Object> callback) {
+    public void getPaymentDetail(String paymentProviderId, String invoiceId, DataCallback<Object> callback) {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
 
         LogUtil.info("Id", paymentProviderId);
         LogUtil.info("paymentAddress", paymentAddress);
 
         apolloClient.query(new GetPaymentDetailQuery(paymentProviderId, paymentAddress)).toBuilder()
-                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + MySabaySDK.getInstance().currentToken()).build())
                 .build()
                 .enqueue(new ApolloCall.Callback<GetPaymentDetailQuery.Data>() {
                     @Override
@@ -206,7 +228,6 @@ public class StoreService extends ViewModel {
                             @Override
                             public void run() {
                                 if (response.getErrors() != null) {
-                                    LogUtil.info("Getpaymentdetail", response.getErrors().get(0).getMessage());
                                     callback.onFailed(response.getErrors().get(0).getMessage());
                                 } else {
                                     if (response.getData() != null) {
@@ -220,7 +241,6 @@ public class StoreService extends ViewModel {
                                         data.withRequestUrl(payment.requestUrl());
                                         data.withAdditionalBody(payment.additionalBody());
                                         data.withAdditionalHeader(payment.additionalHeader());
-
                                         data.withPaymentAddress(paymentAddress);
                                         data.withInvoiceId(invoiceId);
 
@@ -244,8 +264,9 @@ public class StoreService extends ViewModel {
 
     }
 
-    public void postToChargeInAppPurchase(String url, String token, GoogleVerifyBody body, DataCallback<Object> callback) {
-        storeRepo.postToVerifyGoogle(url, token, body)
+    public void postToChargeInAppPurchase(String url, GoogleVerifyBody body, DataCallback<Object> callback) {
+        LogUtil.info("AAAAA", new Gson().toJson(body));
+        storeRepo.postToVerifyGoogle(url, MySabaySDK.getInstance().currentToken(), body)
                 .subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
                 .subscribe(new AbstractDisposableObs<GoogleVerifyResponse>(null) {
@@ -265,13 +286,12 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void postToChargePreAuth(String url, String token, String hash, String signature, String publicKey, String paymentAddress, DataCallback<Object> callback) {
-        storeRepo.postToPaid(url, token, hash, signature, publicKey, paymentAddress).subscribeOn(appRxSchedulers.io())
+    public void postToChargePreAuth(String url, String hash, String signature, String publicKey, String paymentAddress, DataCallback<Object> callback) {
+        storeRepo.postToPaid(url, MySabaySDK.getInstance().currentToken(), hash, signature, publicKey, paymentAddress).subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
                 .subscribe(new AbstractDisposableObs<PaymentResponseItem>(null) {
                     @Override
                     protected void onSuccess(PaymentResponseItem paymentResponseItem) {
-                        LogUtil.info("Pre-Auth", "Payment Success");
                         if (paymentResponseItem != null) {
                             callback.onSuccess(paymentResponseItem);
                         } else
@@ -285,9 +305,30 @@ public class StoreService extends ViewModel {
                 });
     }
 
-    public void getInvoiceById(String token, String invoiceId, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> callback) {
+    public void scheduledCheckPaymentStatus(Handler handler, String invoiceId, long interval, long repeat, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> callback) {
+        final int[] totalDelay = {0};
+        try {
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    LogUtil.info("Run", "Timer");
+                    totalDelay[0]++;
+                    if(totalDelay[0] < (interval/repeat)) {
+                        getInvoiceById(invoiceId, callback);
+                        handler.postDelayed(this, repeat);
+                    } else {
+                        handler.removeCallbacks(this);
+                    }
+                }
+            }, repeat);
+        }catch (Exception e) {
+            LogUtil.info("Error", e.getMessage());
+        }
+    }
+
+    public void getInvoiceById(String invoiceId, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> callback) {
         apolloClient.query(new GetInvoiceByIdQuery(invoiceId)).toBuilder()
-                .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + token).build())
+                .requestHeaders(RequestHeaders.builder()
+                        .addHeader("Authorization", "Bearer " + MySabaySDK.getInstance().currentToken()).build())
                 .build()
                 .enqueue(new ApolloCall.Callback<GetInvoiceByIdQuery.Data>() {
                     @Override
@@ -349,5 +390,56 @@ public class StoreService extends ViewModel {
                         callback.onFailed(e);
                     }
                 });
+    }
+
+    public boolean verifyValidSignature(String signedData, String signature) {
+        try {
+            String base64Key = MySabaySDK.getInstance().getSdkConfiguration().licenseKey;
+            return Security.verifyPurchase(base64Key, signedData, signature);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public ProviderResponse getInAppPurchaseProvider(String type) {
+        if (getMySabayProvider().getValue() == null) return new ProviderResponse();
+
+        ProviderResponse provider  = null;
+        for (MySabayItemResponse item : getMySabayProvider().getValue()) {
+            if (item.type.equals(Globals.IAP_PROVIDER)) {
+                for (ProviderResponse providerItem: item.providers) {
+                    if (type.equals(providerItem.code)) {
+                        provider = providerItem;
+                    }
+                }
+            }
+        }
+        return provider;
+    }
+
+    public ProviderResponse getMySabayProviderId(String type) {
+        ProviderResponse provider  = null;
+
+        for (MySabayItemResponse item : getMySabayProvider().getValue()) {
+            if (item.type.equals(Globals.MY_SABAY_PROVIDER)) {
+                for (ProviderResponse providerItem: item.providers) {
+                    if (type.equals(providerItem.code)) {
+                        provider = providerItem;
+                    }
+                }
+            }
+        }
+        return provider;
+    }
+
+    public List<ProviderResponse> getMySabayProviders() {
+        List<ProviderResponse> provider  = null;
+
+        for (MySabayItemResponse item : getMySabayProvider().getValue()) {
+            if (item.type.equals(Globals.MY_SABAY_PROVIDER)) {
+                provider = item.providers;
+            }
+        }
+        return provider;
     }
 }

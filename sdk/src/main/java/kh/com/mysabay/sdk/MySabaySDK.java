@@ -16,7 +16,6 @@ import com.apollographql.apollo.exception.ApolloException;
 import com.apollographql.apollo.request.RequestHeaders;
 import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
-import com.mysabay.sdk.CheckExistingLoginQuery;
 import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.CreateMySabayLoginMutation;
 import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
@@ -65,6 +64,7 @@ import kh.com.mysabay.sdk.pojo.login.Data;
 import kh.com.mysabay.sdk.pojo.login.SubscribeLogin;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.payment.SubscribePayment;
+import kh.com.mysabay.sdk.pojo.shop.Provider;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.ui.activity.LoginActivity;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
@@ -562,8 +562,8 @@ public class MySabaySDK {
         userService.verifyOTPCode(phoneNumber, otpCode, dataCallback);
     }
 
-    public void getUserInfo(String token, DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
-        userService.getUserProfile(token, dataCallback);
+    public void getUserInfo(DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
+        userService.getUserProfile(dataCallback);
     }
 
     public void loginWithMySabay(String username, String password, DataCallback<LoginWithMySabayMutation.Sso_loginMySabay> dataCallback) {
@@ -578,52 +578,72 @@ public class MySabaySDK {
         userService.createMySabayAccount(username, password, dataCallback);
     }
 
-    public void createMySabayLoginWithPhone(String username, String password, String phoneNumber, String otpCode, DataCallback<CreateMySabayLoginWithPhoneMutation.Sso_createMySabayLoginWithPhone> dataCallback) {
-        userService.createMySabayLoginWithPhone(username, phoneNumber, password, otpCode, dataCallback);
+    public void createMySabayWithPhone(String username, String password, String phoneNumber, String otpCode, DataCallback<CreateMySabayLoginWithPhoneMutation.Sso_createMySabayLoginWithPhone> dataCallback) {
+        userService.createMySabayLoginWithPhone(username, password, phoneNumber, otpCode, dataCallback);
     }
 
-    public void createMySabayWithPhoneOTP(String phoneNumber, DataCallback<SendCreateMySabayWithPhoneOTPMutation.Sso_sendCreateMySabayWithPhoneOTP> dataCallback) {
+    public void requestCreatingMySabayWithPhone(String phoneNumber, DataCallback<SendCreateMySabayWithPhoneOTPMutation.Sso_sendCreateMySabayWithPhoneOTP> dataCallback) {
         userService.createMySabayWithPhoneOTP(phoneNumber, dataCallback);
     }
 
-    public void checkExistingMySabayUsername(String username, DataCallback<CheckExistingLoginQuery.Data> dataCallback) {
+    public void checkExistingMySabayUsername(String username, DataCallback<Boolean> dataCallback) {
         userService.checkExistingMySabayUsername(username, dataCallback);
-    }
-
-    public void getStoreFromServer(String serviceCode, String token, DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> dataCallback) {
-        storeService.getShopFromServerGraphQL(serviceCode, token, dataCallback);
-    }
-
-    public void getMySabayCheckout(String itemId, DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct> callbackData) {
-        storeService.getMySabayCheckout(itemId, callbackData);
-    }
-
-    public void getMatomoTrackingId(String serviceCode, DataCallback<GetMatomoTrackingIdQuery.Sso_service> dataCallback) {
-        userService.getTrackingID(serviceCode, dataCallback);
-    }
-
-    public void getInvoiceById(String token, String id, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> dataCallback) {
-        storeService.getInvoiceById(token, id, dataCallback);
-    }
-
-    public void getExchangeRate(DataCallback<List<GetExchangeRateQuery.Sso_service>> callback) {
-        storeService.getExchangeRate(callback);
-    }
-
-    public void createPaymentProcess(String token, List<Object> items, ProviderResponse provider, double amount, String currency, DataCallback<Object> callbackData) {
-        storeService.createPaymentProcess(token, items, provider, amount, currency, callbackData);
     }
 
     public void loginAsGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> dataCallback) {
         userService.loginAsGuest(dataCallback);
     }
 
-    public void postToChargePreAuth(String url, String token, String hash, String signature, String publicKey, String invoiceId, DataCallback<Object> callback) {
-        storeService.postToChargePreAuth(url, token, hash, signature, publicKey, invoiceId, callback);
+    public void getMatomoTrackingId(String serviceCode, DataCallback<GetMatomoTrackingIdQuery.Sso_service> dataCallback) {
+        userService.getTrackingID(serviceCode, dataCallback);
     }
 
-    public void postToChargeInAppPurchase(String url, String token, GoogleVerifyBody body, DataCallback<Object> callback) {
-        storeService.postToChargeInAppPurchase(url, token, body, callback);
+    public void getStoreProducts(DataCallback<GetProductsByServiceCodeQuery.Store_listProduct> dataCallback) {
+        storeService.getStoreProducts(dataCallback);
+    }
+
+    public void getPaymentServiceProvidersByProduct(String productId, DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct> callbackData) {
+        storeService.getPaymentServiceProvidersByProduct(productId, callbackData);
+    }
+
+    public void checkPaymentStatus(Handler handler, String invoiceId, long interval, long repeat, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> dataCallback) {
+        storeService.scheduledCheckPaymentStatus(handler, invoiceId, interval, repeat, dataCallback);
+    }
+
+    public void getInvoiceById(String invoiceId, DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById> dataCallback) {
+        storeService.getInvoiceById(invoiceId, dataCallback);
+    }
+
+    public void getExchangeRate(DataCallback<List<GetExchangeRateQuery.Sso_service>> callback) {
+        storeService.getExchangeRate(callback);
+    }
+
+    public void createPaymentProcess(List<Object> items, String pspId, double amount, String currency, DataCallback<Object> callbackData) {
+        storeService.createPaymentProcess(items, pspId, amount, currency, callbackData);
+    }
+
+    public void postToChargePreAuth(String url, String hash, String signature, String publicKey, String invoiceId, DataCallback<Object> callback) {
+        storeService.postToChargePreAuth(url, hash, signature, publicKey, invoiceId, callback);
+    }
+
+    public void postToChargeInAppPurchase(String url, GoogleVerifyBody body, DataCallback<Object> callback) {
+        storeService.postToChargeInAppPurchase(url, body, callback);
+    }
+
+    public ProviderResponse getMySabayProvider(String type) {
+        return  storeService.getMySabayProviderId(type);
+    }
+
+    public List<ProviderResponse> getMySabayProviders() {
+        return  storeService.getMySabayProviders();
+    }
+
+    public ProviderResponse getInAppPurchaseProvider(String type) {
+        return  storeService.getInAppPurchaseProvider(type);
+    }
+
+    public boolean verifyValidSignature(String signedData, String signature) {
+        return storeService.verifyValidSignature(signedData, signature);
     }
 
 }

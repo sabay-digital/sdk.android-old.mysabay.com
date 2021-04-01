@@ -521,9 +521,7 @@ public class UserApiVM extends ViewModel {
         apolloClient.mutate(new CreateMySabayLoginWithPhoneMutation(username, RSA.sha256String(password), phoneNumber, otpCode)).enqueue(new ApolloCall.Callback<CreateMySabayLoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<CreateMySabayLoginWithPhoneMutation.Data> response) {
-                LogUtil.info("PPPP", RSA.sha256String(password));
                 if (response.getErrors() != null) {
-                    LogUtil.info("AAAA", response.getErrors().get(0).getMessage());
                     showErrorMsg(context, "Create MySabay with phone failed");
                 } else {
                     if (response.getData() != null) {

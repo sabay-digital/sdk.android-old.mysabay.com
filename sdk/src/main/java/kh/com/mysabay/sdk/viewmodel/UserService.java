@@ -26,6 +26,8 @@ import com.mysabay.sdk.type.Sso_LoginProviders;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
+
+import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.RSA;
@@ -68,7 +70,12 @@ public class UserService extends ViewModel {
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
         });
     }
@@ -96,8 +103,12 @@ public class UserService extends ViewModel {
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                LogUtil.info("error", e.toString());
-                dataCallback.onFailed(e);
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dataCallback.onFailed(e);
+                    }
+                });
             }
 
         });
@@ -231,11 +242,11 @@ public class UserService extends ViewModel {
         });
     }
 
-    public void getUserProfile(String token, DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
+    public void getUserProfile(DataCallback<UserProfileQuery.Sso_userProfile> dataCallback) {
         apolloClient.query(new UserProfileQuery())
                 .toBuilder()
                 .requestHeaders(RequestHeaders.builder()
-                        .addHeader("Authorization", "Bearer " + token).build())
+                        .addHeader("Authorization", "Bearer " + MySabaySDK.getInstance().currentToken()).build())
                 .build()
                 .enqueue(new ApolloCall.Callback<UserProfileQuery.Data>() {
             @Override
@@ -333,7 +344,8 @@ public class UserService extends ViewModel {
     }
 
     public void createMySabayLoginWithPhone(String username, String password, String phoneNumber, String otpCode, DataCallback<CreateMySabayLoginWithPhoneMutation.Sso_createMySabayLoginWithPhone> dataCallback) {
-        apolloClient.mutate(new CreateMySabayLoginWithPhoneMutation(username, password, phoneNumber, otpCode)).enqueue(new ApolloCall.Callback<CreateMySabayLoginWithPhoneMutation.Data>() {
+        LogUtil.info("Info", username + " " + password + " " + phoneNumber + " " + otpCode);
+        apolloClient.mutate(new CreateMySabayLoginWithPhoneMutation(username, RSA.sha256String(password), phoneNumber, otpCode)).enqueue(new ApolloCall.Callback<CreateMySabayLoginWithPhoneMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<CreateMySabayLoginWithPhoneMutation.Data> response) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -364,7 +376,7 @@ public class UserService extends ViewModel {
         });
     }
 
-    public void checkExistingMySabayUsername(String username, DataCallback<CheckExistingLoginQuery.Data> dataCallback) {
+    public void checkExistingMySabayUsername(String username, DataCallback<Boolean> dataCallback) {
         apolloClient.query(new CheckExistingLoginQuery(username, Sso_LoginProviders.SABAY)).enqueue(new ApolloCall.Callback<CheckExistingLoginQuery.Data>() {
             @Override
             public void onResponse(@NotNull Response<CheckExistingLoginQuery.Data> response) {
@@ -375,7 +387,7 @@ public class UserService extends ViewModel {
                             dataCallback.onFailed(response.getErrors().get(0).getMessage());
                         } else {
                             if (response.getData() != null) {
-                                dataCallback.onSuccess(response.getData());
+                                dataCallback.onSuccess(response.getData().sso_existingLogin());
                             } else {
                                 dataCallback.onFailed("check existing MySabay username failed");
                             }

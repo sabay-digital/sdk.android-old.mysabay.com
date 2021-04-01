@@ -23,6 +23,7 @@ import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.gson.Gson;
+import com.mysabay.sdk.GetExchangeRateQuery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
@@ -33,18 +34,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import kh.com.mysabay.sdk.BuildConfig;
+import kh.com.mysabay.sdk.Globals;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.R;
 import kh.com.mysabay.sdk.adapter.ShopAdapter;
 import kh.com.mysabay.sdk.base.BaseFragment;
 import kh.com.mysabay.sdk.billing.Security;
+import kh.com.mysabay.sdk.callback.DataCallback;
 import kh.com.mysabay.sdk.databinding.FmShopBinding;
 import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.googleVerify.DataBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
+import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
 import kh.com.mysabay.sdk.pojo.profile.Wallet;
+import kh.com.mysabay.sdk.pojo.shop.ShopItem;
+import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
@@ -63,9 +69,10 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
     private GridLayoutManager mLayoutManager;
     private ClipboardManager myClipboard;
     private ClipData myClip;
+    private ShopItem shopItem;
     private String mySabayId;
 
-    private static String PURCHASE_ID = "android.test.purchased";
+    private static String PURCHASE_ID = "kh.com.sabay.aog.iap.5_usd";
     private BillingClient billingClient;
     public static final String PREF_FILE= "MyPref";
     public static final String PURCHASE_KEY= "purchase";
@@ -96,13 +103,15 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
             viewModel.getShopFromServerGraphQL(getContext());
 
         mAdapter = new ShopAdapter(v.getContext(), item -> {
-//    if (!BuildConfig.DEBUG)
-//            if (verifyInstallerId(getActivity())) {
+//    if (!BuildConfig.DEBUG) {
+            if (!verifyInstallerId(getActivity())) {
 //                PURCHASE_ID = item.packageId;
-//                purchase(v, item.packageId);
-//            } else {
-//                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
-//            }
+                viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), item.id);
+                shopItem = item;
+                purchase(v, PURCHASE_ID);
+            } else {
+                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
+            }
         });
 
         mLayoutManager = new GridLayoutManager(v.getContext(), getResources().getInteger(R.integer.layout_size));
@@ -337,8 +346,8 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                             purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
                     receiptBody.withData(dataBody);
                     googleVerifyBody.withReceipt(receiptBody);
-                //    viewModel.postToVerifyAppInPurchase(getActivity(), googleVerifyBody);
-
+                    ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
+                    createPayment(getContext(), shopItem, provider, Globals.IAP_PROVIDER, googleVerifyBody);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -376,6 +385,32 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public void createPayment(Context context, ShopItem item, ProviderResponse provider, String type, GoogleVerifyBody body) {
+        viewModel.getExchangeRate(new DataCallback<GetExchangeRateQuery.Sso_service>() {
+            @Override
+            public void onSuccess(GetExchangeRateQuery.Sso_service response) {
+                viewModel.createPayment(context, item, provider, type, response.usdkhr(), new DataCallback<Data>() {
+                    @Override
+                    public void onSuccess(Data response) {
+                        LogUtil.info("Get-payment-detail", new Gson().toJson(response));
+                        if (response != null)
+                            viewModel.postToVerifyAppInPurchase(context, response, response.paymentAddress, body);
+                    }
+
+                    @Override
+                    public void onFailed(Object error) {
+                        LogUtil.info("Get-payment-error", error.toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                MessageUtil.displayDialog(context, error.toString());
+            }
+        });
     }
 
     @Override

@@ -14,7 +14,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.google.gson.Gson;
-import org.jetbrains.annotations.Contract;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
@@ -33,6 +34,7 @@ import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.ui.activity.StoreActivity;
 import kh.com.mysabay.sdk.utils.LogUtil;
+import kh.com.mysabay.sdk.utils.MessageUtil;
 import kh.com.mysabay.sdk.viewmodel.StoreApiVM;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -60,11 +62,10 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     private Data mPaymentResponseItem;
     private String paymentAddress;
     private String invoiceId;
-    private boolean isFinished = false;
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
 
-    private static final long START_TIME_IN_MILLIS = 120000;
+    private static final long START_TIME_IN_MILLIS = 62000;
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
     private long mEndTime;
     Handler handler = new Handler();
@@ -106,13 +107,13 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     @Override
     public void onDestroy() {
         super.onDestroy();
-        handler.removeCallbacks(runnable);
+        handler.removeCallbacksAndMessages(null);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        handler.removeCallbacks(runnable);
+        handler.removeCallbacksAndMessages(null);
     }
 
     @Override
@@ -124,8 +125,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     @Override
     public void initializeObjects(View v, Bundle args) {
         viewModel.setShopItemSelected(mData);
-        startTimer();
-        checkInvoiceIdTimeout();
+        checkPaymentStatus(mTimeLeftInMillis, delay);
         if (args != null) {
             mViewBinding.wv.restoreState(args);
         } else {
@@ -206,7 +206,6 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
                 @Override
                 public void onResponse(Call call, final Response response) throws IOException {
                     final String htmlString = response.body().string();
-                    LogUtil.info("Success", htmlString);
                     mViewBinding.wv.post(new Runnable() {
                         @Override
                         public void run() {
@@ -278,37 +277,36 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     }
 
-    public void getInvoiceId(String id) {
-        viewModel.getInvoiceById(getContext(), id, new DataCallback<InvoiceItemResponse>() {
+    public void checkPaymentStatus(long interval, long repeat) {
+        startTimer(interval);
+        scheduledCheckPaymentStatus(getContext(),handler, invoiceId, interval, repeat);
+    }
+
+    public void scheduledCheckPaymentStatus(Context context, Handler handler, String invoiceId, long interval, long repeat) {
+        viewModel.scheduledCheckPaymentStatus(context, handler, invoiceId, interval, repeat, new DataCallback<InvoiceItemResponse>() {
             @Override
             public void onSuccess(InvoiceItemResponse response) {
-                LogUtil.info("Invoice Response", response.toString());
+                LogUtil.info("InvoiceItemResponse", response.toString());
+                if(!StringUtils.isEmpty(response.ssnTxHash)) {
+                    MessageUtil.displayDialog(getContext(), "Payment Success");
+                    mViewBinding.btnBack.setVisibility(View.VISIBLE);
+                    mViewBinding.btnClose.setVisibility(View.VISIBLE);
+                    mCountDownTimer.cancel();
+                    mViewBinding.tvTimer.setText("Purchase Completed");
+                    handler.removeCallbacksAndMessages(null);
+                }
             }
 
             @Override
             public void onFailed(Object error) {
-                LogUtil.info("Error", error.toString());
+               LogUtil.info("Error", error.toString());
             }
         });
     }
 
-    public void checkInvoiceIdTimeout() {
-        handler.postDelayed(runnable = new Runnable() {
-            public void run() {
-                if(mTimerRunning) {
-                    LogUtil.info("InvoiceId", invoiceId);
-                    getInvoiceId(invoiceId);
-                    handler.postDelayed(runnable, delay);
-                } else {
-                    handler.removeCallbacks(runnable);
-                }
-            }
-        }, delay);
-    }
-
-    private void startTimer() {
-        mEndTime = System.currentTimeMillis() + mTimeLeftInMillis;
-        mCountDownTimer = new CountDownTimer(mTimeLeftInMillis, 1000) {
+    private void startTimer(long interval) {
+        mEndTime = System.currentTimeMillis() + interval;
+        mCountDownTimer = new CountDownTimer(interval, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 mTimeLeftInMillis = millisUntilFinished;
@@ -318,26 +316,27 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             @Override
             public void onFinish() {
                 mTimerRunning = false;
-                updateButtons();
+                showFailDialog();
             }
         }.start();
         mTimerRunning = true;
-        updateButtons();
+        showFailDialog();
     }
 
     private void updateCountDownText() {
         if (mTimerRunning) {
             mViewBinding.tvTimer.setText("You have 1 minute to purchase " + mTimeLeftInMillis / 1000 + "s");
         } else {
-            mViewBinding.tvTimer.setText("Didn’t get OTP code? request again in ");
+            mViewBinding.tvTimer.setText("You have 1 minute to purchase " + 0 + "s");
         }
     }
 
-    private void updateButtons() {
+    private void showFailDialog() {
         if (!mTimerRunning) {
-            getActivity().finish();
+            MessageUtil.displayDialog(getContext(), "Purchase failed", colorCodeBackground(), getString(R.string.ok), (dialog, which) -> {
+                getActivity().finish();
+            });
         }
-
     }
 
     @Override
@@ -354,65 +353,5 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
         if (mCountDownTimer != null) {
             mCountDownTimer.cancel();
         }
-    }
-
-    @NotNull
-    @Contract(pure = true)
-    private String scriptFormValidate(@NotNull Data item) {
-        LogUtil.info("request url", item.requestUrl + paymentAddress);
-        LogUtil.info("hash", item.hash);
-        LogUtil.info("signature", item.signature);
-        LogUtil.info("publicKey", item.publicKey);
-        LogUtil.info("paymentAddress", paymentAddress);
-        String additionalBody = "";
-        try {
-            JSONObject jsonObject = new JSONObject(item.additionalBody.toString());
-            Iterator x = jsonObject.keys();
-            while (x.hasNext()){
-                String key = (String) x.next();
-                if (jsonObject.get(key) instanceof JSONObject) {
-                    JSONObject subJson =(JSONObject) jsonObject.get(key);
-                    String inputValue = "{";
-                    Iterator itr = subJson.keys();
-                        while (itr.hasNext()){
-                            String subFieldKey = (String) itr.next();
-                            LogUtil.info("subFieldKey", itr.hasNext() + "");
-                            String endTag = itr.hasNext() ? "&quot;," : "&quot;";
-                            inputValue += "&quot;"+subFieldKey+"&quot;: &quot;" + subJson.get(subFieldKey).toString() + endTag;
-                            if (!itr.hasNext()) {
-                                inputValue += "}";
-                            }
-                        }
-                    LogUtil.info("Form", inputValue);
-                    additionalBody +=  " <input type=\"hidden\" name=\"" + key + "\" value=\"" + inputValue + "\">\n" ;
-                } else {
-                    additionalBody +=  " <input type=\"hidden\" name=\"" + key + "\" value=\"" + jsonObject.get(key).toString() + "\">\n" ;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "<head>\n" +
-                "    <meta charset=\"utf-8\">\n" +
-                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
-                "    <link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css\">\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <h1>Please Wait</h1>\n" +
-                "    <form id=\"frm\" action=\"" + item.requestUrl + paymentAddress + "\" method=\"post\">\n" +
-                "        <input type=\"hidden\" name=\"hash\" value=\"" + item.hash + "\">\n" +
-                "        <input type=\"hidden\" name=\"signature\" value=\"" + item.signature + "\">\n" +
-                "        <input type=\"hidden\" name=\"public_key\" value=\"" + item.publicKey + "\">\n" +
-                         additionalBody  +
-                "    </form>\n" +
-                "    <script>\n" +
-                "       document.getElementById('frm').submit()\n" +
-                "    </script>\n" +
-                "\u200B\n" +
-                "</body>\n" +
-                "</html>";
     }
 }

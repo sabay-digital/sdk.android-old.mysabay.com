@@ -102,6 +102,23 @@ public class MessageUtil {
         displayDialog(context, title, msg, 0, txtPos, null, posListener);
     }
 
+    public static void displayDialog(Context context, String msg, int color, String txtPos, MaterialDialog.SingleButtonCallback posListener) {
+        new MaterialDialog.Builder(context)
+                .typeface(FontUtils.getTypefaceKhmerBold(context), FontUtils.getTypefaceKhmer(context))
+                .titleColorRes(R.color.colorYellow)
+                .backgroundColorRes(color)
+                .content(msg).canceledOnTouchOutside(false)
+                .positiveColorRes(R.color.colorYellow)
+                .contentColorRes(R.color.secondary)
+                .positiveText(txtPos)
+                .onPositive((dialog, which) -> {
+                    if (posListener != null)
+                        posListener.onClick(dialog, which);
+                    else
+                        dialog.dismiss();
+        }).build().show();
+    }
+
     public static void displayDialog(Context context, String title, String msg, String txtNeg, String txtPos, int color,
                                      MaterialDialog.SingleButtonCallback negListener,
                                      MaterialDialog.SingleButtonCallback posListener) {

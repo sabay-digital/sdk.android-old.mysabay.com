@@ -1,10 +1,12 @@
 package kh.com.mysabay.sample;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -25,6 +27,7 @@ import kh.com.mysabay.sdk.pojo.onetime.OneTime;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.utils.LogUtil;
+import kh.com.mysabay.sdk.utils.MessageUtil;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -60,7 +63,7 @@ public class WebViewActivity extends AppCompatActivity {
         }
 
         startTimer();
-        checkInvoiceIdTimeout();
+        scheduledCheckPaymentStatus(handler, mPaymentResponseItem.invoiceId, mTimeLeftInMillis, delay);
             WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
             mViewBinding.wv.getSettings().setJavaScriptEnabled(true);
             mViewBinding.wv.addJavascriptInterface(new OneTime(), "onetime");
@@ -184,25 +187,17 @@ public class WebViewActivity extends AppCompatActivity {
 
     }
 
-    public void checkInvoiceIdTimeout() {
-        handler.postDelayed(runnable = new Runnable() {
-            public void run() {
-                if(mTimerRunning) {
-                    LogUtil.info("InvoiceId", mPaymentResponseItem.invoiceId);
-                    getInvoiceId(mPaymentResponseItem.invoiceId);
-                    handler.postDelayed(runnable, delay);
-                } else {
-                    handler.removeCallbacks(runnable);
-                }
-            }
-        }, delay);
-    }
-
-    public void getInvoiceId(String id) {
-        MySabaySDK.getInstance().getInvoiceById(MySabaySDK.getInstance().currentToken(), id, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
+    public void scheduledCheckPaymentStatus(Handler handler, String invoiceId, long interval, long repeat) {
+        MySabaySDK.getInstance().checkPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
             @Override
             public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
-                LogUtil.info("InvoiceId", response.toString());
+                LogUtil.info("Invoice-Response", response.toString());
+                if(!response.ssnTxHash().isEmpty()) {
+                    MessageUtil.displayDialog(getApplicationContext(), "Payment Success");
+                    mViewBinding.btnBack.setVisibility(View.VISIBLE);
+                    mViewBinding.btnClose.setVisibility(View.VISIBLE);
+                    mCountDownTimer.cancel();
+                }
             }
 
             @Override
@@ -218,6 +213,9 @@ public class WebViewActivity extends AppCompatActivity {
         if (mCountDownTimer != null) {
             mCountDownTimer.cancel();
         }
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
     }
 
     @Override
@@ -225,6 +223,9 @@ public class WebViewActivity extends AppCompatActivity {
         super.onDestroy();
         if (mCountDownTimer != null) {
             mCountDownTimer.cancel();
+        }
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
         }
     }
 }

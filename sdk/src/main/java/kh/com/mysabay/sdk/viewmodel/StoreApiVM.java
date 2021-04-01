@@ -23,6 +23,8 @@ import com.mysabay.sdk.GetPaymentDetailQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.type.Invoice_CreateInvoiceInput;
 import com.mysabay.sdk.type.Store_PagerInput;
+
+import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -83,7 +85,6 @@ public class StoreApiVM extends ViewModel {
     private final MediatorLiveData<ShopItem> mDataSelected;
     private final MediatorLiveData<List<MySabayItemResponse>> mySabayItemMediatorLiveData;
     public final MediatorLiveData<List<ProviderResponse>> _thirdPartyItemMediatorLiveData;
-    private final MediatorLiveData<Integer> exChangeRate;
 
     @Inject
     public StoreApiVM(ApolloClient apolloClient, StoreRepo storeRepo) {
@@ -96,7 +97,6 @@ public class StoreApiVM extends ViewModel {
         this.mySabayItemMediatorLiveData = new MediatorLiveData<>();
         this._thirdPartyItemMediatorLiveData = new MediatorLiveData<>();
         this.sdkConfiguration = MySabaySDK.getInstance().getSdkConfiguration();
-        this.exChangeRate = new MediatorLiveData<>();
     }
 
     @Override
@@ -170,14 +170,6 @@ public class StoreApiVM extends ViewModel {
     public void setShopItemSelected(ShopItem data) {
         _networkState.setValue(new NetworkState(NetworkState.Status.SUCCESS));
         this.mDataSelected.setValue(data);
-    }
-
-    public LiveData<Integer> getExChangeRate() {
-        return this.exChangeRate;
-    }
-
-    public void setExChangeRate(Integer invoiceId) {
-        this.exChangeRate.setValue(invoiceId);
     }
 
     public LiveData<ShopItem> getItemSelected() {
@@ -315,9 +307,6 @@ public class StoreApiVM extends ViewModel {
         String paymentAddress = MySabaySDK.getInstance().getPaymentAddress(invoiceId);
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
 
-        LogUtil.info("Id", id);
-        LogUtil.info("paymentAddress", paymentAddress);
-
         apolloClient.query(new GetPaymentDetailQuery(id, paymentAddress)).toBuilder()
                 .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
                 .build()
@@ -363,11 +352,6 @@ public class StoreApiVM extends ViewModel {
 
     public void postToVerifyAppInPurchase(Context context, Data data, String paymentAddress, GoogleVerifyBody body) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
-        body.withHash(data.hash);
-        body.withPublicKey(data.publicKey);
-        body.withSignature(data.signature);
-        LogUtil.info("GoogleVerifyBody", gson.toJson(body));
-
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
         mCompos.add(storeRepo.postToVerifyGoogle(data.requestUrl + paymentAddress, appItem.token, body)
                 .subscribeOn(appRxSchedulers.io())
@@ -375,8 +359,7 @@ public class StoreApiVM extends ViewModel {
                     @Override
                     public void accept(GoogleVerifyResponse googleVerifyResponse) throws Exception {
                         _networkState.setValue(new NetworkState(NetworkState.Status.SUCCESS));
-                        EventBus.getDefault().post(new SubscribePayment(Globals.APP_IN_PURCHASE, body, null));
-                        ((Activity) context).finish();
+                        getInvoiceById(context, data.invoiceId, body);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -400,16 +383,68 @@ public class StoreApiVM extends ViewModel {
                     @Override
                     protected void onSuccess(PaymentResponseItem item) {
                         _networkState.setValue(new NetworkState(NetworkState.Status.SUCCESS));
-                        EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, item, null));
-                        ((Activity) context).finish();
+                        getInvoiceById(context, data.invoiceId, item);
                     }
 
                     @Override
                     protected void onErrors(Throwable error) {
-                        _networkState.setValue(new NetworkState(NetworkState.Status.ERROR, "Request Failed"));
+                        LogUtil.info("Error", error.getMessage());
+                        _networkState.setValue(new NetworkState(NetworkState.Status.ERROR, "Payment with MySabay failed"));
                         EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, null, error.getMessage()));
                     }
                 });
+    }
+
+    public void scheduledCheckPaymentStatus(Context context, Handler handler, String invoiceId, long interval, long repeat, DataCallback<InvoiceItemResponse> callback) {
+        final int[] totalDelay = {0};
+        try {
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    totalDelay[0]++;
+                    if(totalDelay[0] < (interval/repeat)) {
+                        getInvoiceById(context, invoiceId, callback);
+                        handler.postDelayed(this, repeat);
+                    } else {
+                        handler.removeCallbacks(this);
+                    }
+                }
+            }, repeat);
+        }catch (Exception e) {
+           LogUtil.info("Error", e.getMessage());
+        }
+    }
+
+    public void getInvoiceById(Context context, String id, Object item) {
+        AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
+        if (id != null) {
+            apolloClient.query(new GetInvoiceByIdQuery(id)).toBuilder()
+                    .requestHeaders(RequestHeaders.builder().addHeader("Authorization", "Bearer " + appItem.token).build())
+                    .build().enqueue(new ApolloCall.Callback<GetInvoiceByIdQuery.Data>() {
+                @Override
+                public void onResponse(@NotNull Response<GetInvoiceByIdQuery.Data> response) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.getErrors() != null) {
+                                showErrorMsg(context, response.getErrors().get(0).getMessage());
+                            } else {
+                                if (!StringUtils.isEmpty(response.getData().invoice_getInvoiceById().ssnTxHash())) {
+                                    EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, item, null));
+                                    ((Activity) context).finish();
+                                } else {
+                                    showErrorMsg(context, "Get invoice by id failed");
+                                }
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(@NotNull ApolloException e) {
+                    showErrorMsg(e, context, "Get invoice by id failed");
+                }
+            });
+        }
     }
 
     public void getInvoiceById(Context context, String id, DataCallback<InvoiceItemResponse> callback) {
@@ -420,16 +455,21 @@ public class StoreApiVM extends ViewModel {
                     .build().enqueue(new ApolloCall.Callback<GetInvoiceByIdQuery.Data>() {
                 @Override
                 public void onResponse(@NotNull Response<GetInvoiceByIdQuery.Data> response) {
-                    if (response.getErrors() != null) {
-                        showErrorMsg(context, "Get invoice by id failed");
-                    } else {
-                        if (response.getData().invoice_getInvoiceById() != null) {
-                            InvoiceItemResponse invoice = gson.fromJson(gson.toJson(response.getData().invoice_getInvoiceById()), InvoiceItemResponse.class);
-                            callback.onSuccess(invoice);
-                        } else {
-                            callback.onFailed("Get invoice by id failed");
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (response.getErrors() != null) {
+                                showErrorMsg(context, "Get invoice by id failed");
+                            } else {
+                                if (response.getData().invoice_getInvoiceById() != null) {
+                                    InvoiceItemResponse invoice = gson.fromJson(gson.toJson(response.getData().invoice_getInvoiceById()), InvoiceItemResponse.class);
+                                    callback.onSuccess(invoice);
+                                } else {
+                                    callback.onFailed("Get invoice by id failed");
+                                }
+                            }
                         }
-                    }
+                    });
                 }
 
                 @Override
@@ -441,7 +481,7 @@ public class StoreApiVM extends ViewModel {
         }
     }
 
-    public void getExchangeRate(Context context) {
+    public void getExchangeRate(DataCallback<GetExchangeRateQuery.Sso_service> callback) {
         AppItem appItem = gson.fromJson(MySabaySDK.getInstance().getAppItem(), AppItem.class);
         Input<String> serviceCode = Input.fromNullable(MySabaySDK.getInstance().serviceCode());
         apolloClient.query(new GetExchangeRateQuery(serviceCode)).toBuilder()
@@ -454,17 +494,12 @@ public class StoreApiVM extends ViewModel {
                             @Override
                             public void run() {
                                 if (response.getErrors() != null) {
-                                    showErrorMsg(context, response.getErrors().get(0).getMessage());
+                                    callback.onFailed(response.getErrors().get(0).getMessage());
                                 } else {
                                     if (response.getData() != null) {
-                                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                setExChangeRate(response.getData().sso_service().get(0).usdkhr());
-                                            }
-                                        });
+                                        callback.onSuccess(response.getData().sso_service().get(0));
                                     } else {
-                                        showErrorMsg(context, "Get Exchange rate failed");
+                                        callback.onFailed("Get Exchange rate failed");
                                     }
                                 }
                             }
@@ -473,7 +508,7 @@ public class StoreApiVM extends ViewModel {
 
                     @Override
                     public void onFailure(@NotNull ApolloException e) {
-                        showErrorMsg(context, "Get Exchange rate failed");
+                        callback.onFailed(e);
                     }
                 });
     }

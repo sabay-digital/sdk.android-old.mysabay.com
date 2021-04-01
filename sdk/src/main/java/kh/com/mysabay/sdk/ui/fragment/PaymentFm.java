@@ -32,6 +32,8 @@ import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.gson.Gson;
+import com.mysabay.sdk.GetExchangeRateQuery;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +129,7 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
         viewModel.setShopItemSelected(mData);
         viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), mData.id);
-        viewModel.getExchangeRate(getContext());
+//        viewModel.getExchangeRate(getContext());
 
         onBillingSetupFinished();
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
@@ -140,12 +142,20 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
         getUserProfile();
         getMySabayPaymentProvider();
-        viewModel.getExChangeRate().observe(this, exChangeRate -> {
-                    if (exChangeRate != null) {
-                        this.exChangeRate = exChangeRate;
-                        amountToPaid = Math.ceil((mData.salePrice * exChangeRate) / 100);
-                    }
-                });
+        viewModel.getExchangeRate(new DataCallback<GetExchangeRateQuery.Sso_service>() {
+            @Override
+            public void onSuccess(GetExchangeRateQuery.Sso_service response) {
+                if (response != null) {
+                    exChangeRate = response.usdkhr();
+                    amountToPaid = Math.ceil((mData.salePrice * exChangeRate) / 100);
+                }
+            }
+
+            @Override
+            public void onFailed(Object error) {
+
+            }
+        });
         mViewBinding.btnPay.setEnabled(false);
         mViewBinding.btnPay.setBackgroundResource(R.color.secondary);
         viewModel.getItemSelected().observe(this, data -> {
@@ -273,11 +283,12 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
 
         mViewBinding.btnPay.setOnClickListener(v -> {
             if (checkedId[0] == R.id.btn_in_app_purchase) {
-//                ProviderResponse data =  viewModel.getInAppPurchaseProvider(v.getContext());
+                ProviderResponse data =  viewModel.getInAppPurchaseProvider("play_store");
                 if (viewModel.getItemSelected().getValue() != null) {
-//                    if (!BuildConfig.DEBUG)
-//                        PURCHASE_ID = data.id;
-                        purchase(v, PURCHASE_ID);
+                    if (!BuildConfig.DEBUG)
+                        PURCHASE_ID = data.id;
+
+                    purchase(v, PURCHASE_ID);
                 } else
                     MessageUtil.displayDialog(v.getContext(), "Sorry your device not support in app purchase");
             } else if (checkedId[0] == R.id.btn_mysabay) {
@@ -492,7 +503,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                         receiptBody.withData(dataBody);
                         googleVerifyBody.withReceipt(receiptBody);
                         ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
-
                         paymentProcess(getContext(), mData, Globals.IAP_PROVIDER, provider, googleVerifyBody);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -572,24 +582,23 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                 }
                 MessageUtil.displayDialog(context, getString(R.string.payment_confirmation),
                             String.format(getString(R.string.are_you_pay_with_my_sabay_provider), priceWithCurrency), getString(R.string.cancel),
-                            getString(R.string.confirm), colorCodeBackground(), null,
-                            (dialog, which) -> {
+                            getString(R.string.confirm), colorCodeBackground(), null, (dialog, which) -> {
                     if (data != null) {
-                        testPayment(getContext(), mData, provider, type, exChangeRate, null);
+                        createPayment(getContext(), data, provider, type, exChangeRate, null);
                     }
                 });
             }
             else if (type.equals(Globals.ONE_TIME_PROVIDER)) {
-               testPayment(getContext(), mData, providerResponse, type, exChangeRate, null);
+                createPayment(getContext(), data, providerResponse, type, exChangeRate, null);
             } else {
-                testPayment(getContext(), mData, providerResponse, type, exChangeRate, body);
+                createPayment(getContext(), data, providerResponse, type, exChangeRate, body);
             }
         } else {
             MessageUtil.displayDialog(context, "Get exchange rate failed");
         }
     }
 
-    public void testPayment(Context context, ShopItem item, ProviderResponse provider, String type, double exChangeRate, GoogleVerifyBody body) {
+    public void createPayment(Context context, ShopItem item, ProviderResponse provider, String type, double exChangeRate, GoogleVerifyBody body) {
         viewModel.createPayment(context, item, provider, type, exChangeRate, new DataCallback<Data>() {
             @Override
             public void onSuccess(Data response) {
@@ -670,7 +679,6 @@ public class PaymentFm extends BaseFragment<FmPaymentBinding, StoreApiVM> implem
                     if (item.type.equals(Globals.IAP_PROVIDER)) {
                         for (ProviderResponse providerResponse : item.providers) {
                             if (providerResponse.code.equals("play_store")) {
-                                LogUtil.info("Iap", providerResponse.label);
                                 //  if (verifyInstallerId(getActivity())) {
                                 mViewBinding.btnInAppPurchase.setVisibility(View.VISIBLE);
                                 //  } else {
