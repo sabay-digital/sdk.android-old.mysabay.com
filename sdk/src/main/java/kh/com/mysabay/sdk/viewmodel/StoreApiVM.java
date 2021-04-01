@@ -334,7 +334,7 @@ public class StoreApiVM extends ViewModel {
 
                                         EcommerceItems items = new EcommerceItems();
                                         items.addItem(new EcommerceItems.Item("sku").name(shopItem.properties.displayName).category("category").price((int) (shopItem.salePrice * 100)).quantity(1));
-                                        MySabaySDK.getInstance().setEcommerce(context, items, (int) (shopItem.salePrice * 100), (int) (shopItem.salePrice * 100));
+                                        MySabaySDK.getInstance().trackOrder(context, "OrderId", items, (int) (shopItem.salePrice * 100), (int) (shopItem.salePrice * 100), 0, 0, 0);
                                         callback.onSuccess(data);
                                     } else {
                                         showErrorMsg(context, "Get Payment Detail is error");

@@ -143,7 +143,6 @@ public class WebViewActivity extends AppCompatActivity {
                     mViewBinding.wv.post(new Runnable() {
                         @Override
                         public void run() {
-//                            mViewBinding.waitingView.progressBar.setVisibility(View.GONE);
                             mViewBinding.wv.clearCache(true);
                             mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl, htmlString, "text/html", "utf-8", null);
                         }
@@ -188,7 +187,7 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     public void scheduledCheckPaymentStatus(Handler handler, String invoiceId, long interval, long repeat) {
-        MySabaySDK.getInstance().checkPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
+        MySabaySDK.getInstance().scheduledCheckPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
             @Override
             public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
                 LogUtil.info("Invoice-Response", response.toString());

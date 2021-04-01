@@ -30,6 +30,7 @@ import com.mysabay.sdk.CreateMySabayLoginWithPhoneMutation;
 import com.mysabay.sdk.GetInvoiceByIdQuery;
 import com.mysabay.sdk.GetProductsByServiceCodeQuery;
 import com.mysabay.sdk.LoginGuestMutation;
+import com.mysabay.sdk.LoginWithFacebookMutation;
 import com.mysabay.sdk.LoginWithMySabayMutation;
 import com.mysabay.sdk.LoginWithPhoneMutation;
 import com.mysabay.sdk.SendCreateMySabayWithPhoneOTPMutation;
@@ -58,7 +59,6 @@ import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
 import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
-import kh.com.mysabay.sdk.pojo.shop.Provider;
 import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.utils.FontUtils;
@@ -89,7 +89,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         mViewBinding.viewPb.setVisibility(View.GONE);
 
         mViewBinding.btnLoginGuest.setOnClickListener(v -> {
-            MySabaySDK.getInstance().loginAsGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
+            MySabaySDK.getInstance().loginGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
                 @Override
                 public void onSuccess(LoginGuestMutation.Sso_loginGuest response) {
                     AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
@@ -182,11 +182,25 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             }
         });
 
+        mViewBinding.btnLoginFb.setOnClickListener(v -> {
+            MySabaySDK.getInstance().loginWithFacebook("", new DataCallback<LoginWithFacebookMutation.Sso_loginFacebook>() {
+                @Override
+                public void onSuccess(LoginWithFacebookMutation.Sso_loginFacebook response) {
+
+                }
+
+                @Override
+                public void onFailed(Object error) {
+
+                }
+            });
+        });
+
         mViewBinding.btnLogin.setOnClickListener(v -> {
             String phoneNumber = mViewBinding.edtPhone.getText().toString();
             if (!phoneNumber.isEmpty()) {
                 mViewBinding.viewPb.setVisibility(View.VISIBLE);
-                MySabaySDK.getInstance().loginWithPhoneNumber(phoneNumber, new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
+                MySabaySDK.getInstance().loginWithPhone(phoneNumber, new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
                     @Override
                     public void onSuccess(LoginWithPhoneMutation.Sso_loginPhone response) {
                         mViewBinding.viewPb.setVisibility(View.GONE);
@@ -214,7 +228,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             String otpCode = mViewBinding.edtVerifyCode.getText().toString();
             if (!otpCode.isEmpty()) {
                 mViewBinding.viewPb.setVisibility(View.VISIBLE);
-                MySabaySDK.getInstance().verifyOTPCode(phoneNumber, otpCode, new DataCallback<VerifyOtpCodMutation.Sso_verifyOTP>() {
+                MySabaySDK.getInstance().verifyOtp(phoneNumber, otpCode, new DataCallback<VerifyOtpCodMutation.Sso_verifyOTP>() {
                     @Override
                     public void onSuccess(VerifyOtpCodMutation.Sso_verifyOTP response) {
                         mViewBinding.viewPb.setVisibility(View.GONE);
@@ -352,7 +366,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             if (!username.isEmpty() && !password.isEmpty() && !confirmPassword.isEmpty()) {
                 if (StringUtils.equals(password, confirmPassword)) {
                     mViewBinding.viewPb.setVisibility(View.VISIBLE);
-                    MySabaySDK.getInstance().createMySabayAccount(username, password, new DataCallback<CreateMySabayLoginMutation.Sso_createMySabayLogin>() {
+                    MySabaySDK.getInstance().registerMySabayAccount(username, password, new DataCallback<CreateMySabayLoginMutation.Sso_createMySabayLogin>() {
                         @Override
                         public void onSuccess(CreateMySabayLoginMutation.Sso_createMySabayLogin response) {
                             mViewBinding.viewPb.setVisibility(View.GONE);
@@ -647,18 +661,18 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
     }
 
     public void paymentProcess(Context context, List<Object> items, String pspId, double amount, String currency, String type) {
-        MySabaySDK.getInstance().createPaymentProcess(items, pspId, amount, currency, new DataCallback<Object>() {
+        MySabaySDK.getInstance().createPaymentDetail(pspId, items, amount, currency, new DataCallback<Object>() {
             @Override
             public void onSuccess(Object response) {
                 LogUtil.info("Response-Purchase", new Gson().toJson(response));
                 Data data = new Gson().fromJson(new Gson().toJson(response), Data.class);
                 if (type == "pre-auth") {
-                    MySabaySDK.getInstance().postToChargePreAuth(data.requestUrl + data.paymentAddress, data.hash, data.signature, data.publicKey, data.paymentAddress, new DataCallback<Object>() {
+                    MySabaySDK.getInstance().postToChargePreAuth(data, new DataCallback<Object>() {
                         @Override
                         public void onSuccess(Object response) {
                             mViewBinding.viewPb.setVisibility(View.GONE);
                             LogUtil.info("PreAuth-Purchase", "Success");
-                            MySabaySDK.getInstance().getInvoiceById(data.invoiceId, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
+                            MySabaySDK.getInstance().checkPaymentStatus(data.invoiceId, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
                                 @Override
                                 public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
                                     LogUtil.info("response", response.toString());
@@ -683,11 +697,11 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                         }
                     });
                 } else if (type == "iap"){
-                    MySabaySDK.getInstance().postToChargeInAppPurchase(data.requestUrl + data.paymentAddress, googleVerifyBody, new DataCallback<Object>() {
+                    MySabaySDK.getInstance().verifyInAppPurcahse(data, googleVerifyBody, new DataCallback<Object>() {
                         @Override
                         public void onSuccess(Object response) {
                             mViewBinding.viewPb.setVisibility(View.GONE);
-                            MySabaySDK.getInstance().getInvoiceById(data.invoiceId, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
+                            MySabaySDK.getInstance().checkPaymentStatus(data.invoiceId, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
                                 @Override
                                 public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
                                     if (!StringUtils.isEmpty(response.ssnTxHash())) {
