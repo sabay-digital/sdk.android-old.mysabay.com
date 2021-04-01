@@ -11,8 +11,6 @@ MySabay SDK built-in with ui support for authentication for account. This will m
 Call this function if you want to use ui support, all you will do is to wait for result. 
 
 ```java
-    import kh.com.mysabay.sdk.MySabaySDK;
-
     MySabaySDK.getInstance().showLoginView(new LoginListener() {
         @Override
         public void loginSuccess(String accessToken) {
@@ -111,6 +109,7 @@ MySabay SDK allows user to login with Facebook. Here you have to get Facebook Ap
 		}
 	});	
 ```
+
 ### Login MySabay
 
 Login with MySabay is for user who has MySabay account. Call this function in your app to login.
@@ -135,6 +134,7 @@ To register as new MySabay user, call function below.
 
 ```java
 	MySabaySDK.getInstance().registerMySabayAccount(username, password, new DataCallback<CreateMySabayLoginMutation.Sso_createMySabayLogin>() {
+
         @Override
         public void onSuccess(CreateMySabayLoginMutation.Sso_createMySabayLogin response) {
             LogUtil.info("Register MySabay account", response.toString());        
@@ -268,14 +268,16 @@ To logout user, call this function
 
 ### Tokens Management
 
-MySabay SDK will manage tokens when loggin in with UI support. For functionalities, you have to manage tokens manually for later use.
+MySabay SDK will manage tokens when login in with UI support. For functionalities, you have to manage tokens manually for later use.
 
 ```java
-	AppItem appItem = new AppItem(accessToken, refreshToken, expire);
+    AppItem appItem = new AppItem(accessToken, refreshToken, expire);
     String item = new Gson().toJson(appItem);
     MySabaySDK.getInstance().saveAppItem(item);
 ```
+
 #### Example
+
 ```java 
   	MySabaySDK.getInstance().verifyOTPCode(phoneNumber, otpCode, new DataCallback<VerifyOtpCodMutation.Sso_verifyOTP>() {
     	@Override

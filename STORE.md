@@ -113,6 +113,7 @@ Every purchase with MySabay SDK has to be recorded in our network. Call function
         public void onFailed(Object error) {
             LogUtil.info("Error", error.toString());
         }
+    });
 ```
 
 - Arguments:
@@ -135,6 +136,7 @@ To purchase with android in-app purchase, call below function.
         public void onFailed(Object error) {
             LogUtil.info("Error", error.toString());
         }
+    });
 ```
 
 - Arguments:
@@ -186,8 +188,8 @@ Invoice status will take some time to update. To check payment status schedully,
 
 ```java 
   MySabaySDK.getInstance().scheduledCheckPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
-            @Override
-            public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
+        @Override
+        public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
             LogUtil.info("Check Payment Status", response.toString());
         }
         @Override

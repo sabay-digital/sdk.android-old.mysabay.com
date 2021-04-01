@@ -38,14 +38,14 @@ This function can be called to track events triggered by the user's action or an
 This function can be called to track when purchase is made in the app.
 
 ```java
-	MySabaySDK.getInstance().trackOrder(context, rackingOrder);
+    MySabaySDK.getInstance().trackOrder(context, rackingOrder);
 ```
 
 - Function: `trackOrder(Context context, TrackingOrder trackingOrder)`
 - Arguments:
     - `context`: the context which is linked to the Activity from which is called
 	- `trackingOrder` 
-	- `id: String`: defines a order id
+	    - `id: String`: defines a order id
 		- `items: [EcommerceItems]`: defines the array of items of order
 		- `grandTotal: Integer`: define total amount
 		- `subTotal: Integer`: defines the sub total of order
@@ -58,7 +58,7 @@ This function can be called to track when purchase is made in the app.
 This function can be called to set a custom user ID in place of the default UUID created for each visitor.
 
 ```java 
-	MySabaySDK.getInstance().setCustomUserId(context, userId);
+    MySabaySDK.getInstance().setCustomUserId(context, userId);
 ```
 
 - Arguments:
