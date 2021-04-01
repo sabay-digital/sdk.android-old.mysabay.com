@@ -83,7 +83,7 @@ public class MyApplication extends SdkApplication {
         super.onCreate();
         //MySabaySDK has default configuration with dark theme and sandbox url.
         final SdkConfiguration configuration = new SdkConfiguration.Builder(
-                "ARENA OF GLORY", //mysabay  app name
+                "SDK SAMPLE", //mysabay  app name
                 "sdk_sample", // service code
                 "", // license key
                 "") // merchant id
