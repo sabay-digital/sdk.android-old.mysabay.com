@@ -131,7 +131,7 @@ public class StoreService extends ViewModel {
         });
     }
 
-    public void createPaymentProcess(List<Object> items, String pspId, double amount, String currency, DataCallback<Object> callbackData) {
+    public void createPaymentProcess(String pspId, List<Object> items, double amount, String currency, DataCallback<Object> callbackData) {
         Input<String> serviceCode = Input.fromNullable(MySabaySDK.getInstance().serviceCode());
         apolloClient.query(new GetExchangeRateQuery(serviceCode)).toBuilder()
                 .build()
@@ -264,9 +264,8 @@ public class StoreService extends ViewModel {
 
     }
 
-    public void postToChargeInAppPurchase(String url, GoogleVerifyBody body, DataCallback<Object> callback) {
-        LogUtil.info("AAAAA", new Gson().toJson(body));
-        storeRepo.postToVerifyGoogle(url, MySabaySDK.getInstance().currentToken(), body)
+    public void postToChargeInAppPurchase(Data data, GoogleVerifyBody body, DataCallback<Object> callback) {
+        storeRepo.postToVerifyGoogle(data.requestUrl + data.paymentAddress, MySabaySDK.getInstance().currentToken(), body)
                 .subscribeOn(appRxSchedulers.io())
                 .observeOn(appRxSchedulers.mainThread())
                 .subscribe(new AbstractDisposableObs<GoogleVerifyResponse>(null) {

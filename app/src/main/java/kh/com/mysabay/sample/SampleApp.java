@@ -32,22 +32,22 @@ public class SampleApp extends SdkApplication {
                 .setToUseSandBox(true).build();
         MySabaySDK.Impl.setDefaultInstanceConfiguration(this, configuration);
 
-//        MySabaySDK.getInstance().getMatomoTrackingId("aog", new DataCallback<GetMatomoTrackingIdQuery.Sso_service>() {
-//            @Override
-//            public void onSuccess(GetMatomoTrackingIdQuery.Sso_service response) {
-//                if (response != null) {
-//                    if (!response.matomoTrackingID().isEmpty()) {
-//                        id = Integer.parseInt(response.matomoTrackingID());
-//                        createConfig();
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onFailed(Object error) {
-//                LogUtil.info("Error", error.toString());
-//            }
-//        });
+        MySabaySDK.getInstance().getMatomoTrackingId("aog", new DataCallback<GetMatomoTrackingIdQuery.Sso_service>() {
+            @Override
+            public void onSuccess(GetMatomoTrackingIdQuery.Sso_service response) {
+                if (response != null) {
+                    if (!response.matomoTrackingID().isEmpty()) {
+                        id = Integer.parseInt(response.matomoTrackingID());
+                        createConfig();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailed(Object error) {
+                LogUtil.info("Error", error.toString());
+            }
+        });
     }
 
     @Override
