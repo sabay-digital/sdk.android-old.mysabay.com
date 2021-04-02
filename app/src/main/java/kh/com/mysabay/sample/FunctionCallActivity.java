@@ -714,7 +714,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                                     if (!StringUtils.isEmpty(response.ssnTxHash())) {
                                         MessageUtil.displayDialog(context, "Payment with pre-auth is success");
                                     } else {
-                                        MessageUtil.displayDialog(context, "Payment with pre-auth failed" + " ssnTxHash is Empty");
+                                        MessageUtil.displayDialog(context, "Sorry, we were unable to process your payment.");
                                     }
                                 }
 
@@ -742,7 +742,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                                     if (!StringUtils.isEmpty(response.ssnTxHash())) {
                                         MessageUtil.displayDialog(context, "Payment with iap is success");
                                     } else {
-                                        MessageUtil.displayDialog(context, "Payment with iap failed" + " ssnTxHash is Empty");
+                                        MessageUtil.displayDialog(context, "Sorry, we were unable to process your payment.");
                                     }
                                 }
 

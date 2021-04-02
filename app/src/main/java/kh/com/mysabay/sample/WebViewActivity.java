@@ -1,12 +1,10 @@
 package kh.com.mysabay.sample;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -22,9 +20,7 @@ import kh.com.mysabay.sample.databinding.ActivityWebViewBinding;
 import kh.com.mysabay.sdk.BuildConfig;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.callback.DataCallback;
-import kh.com.mysabay.sdk.pojo.invoice.InvoiceItemResponse;
 import kh.com.mysabay.sdk.pojo.onetime.OneTime;
-import kh.com.mysabay.sdk.pojo.shop.ShopItem;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
@@ -179,7 +175,9 @@ public class WebViewActivity extends AppCompatActivity {
 
     private void updateButtons() {
         if (!mTimerRunning) {
-            finish();
+            MessageUtil.displayDialog(this, "Sorry, we were unable to process your payment.", R.color.colorWhite, getString(kh.com.mysabay.sdk.R.string.ok), (dialog, which) -> {
+                finish();
+            });
         }
 
     }
@@ -198,7 +196,7 @@ public class WebViewActivity extends AppCompatActivity {
 
             @Override
             public void onFailed(Object error) {
-                LogUtil.info("Error", error.toString());
+                MessageUtil.displayDialog(WebViewActivity.this, error.toString());
             }
         });
     }
