@@ -443,7 +443,7 @@ public class StoreApiVM extends ViewModel {
                                     EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, item, null));
                                     ((Activity) context).finish();
                                 } else {
-                                    showErrorMsg(context, "Sorry, we were unable to process your payment.");
+                                    showErrorMsg(context, context.getString(R.string.sorry_we_were_unable_to_process_your_payment));
                                 }
                             }
                         }
@@ -476,7 +476,7 @@ public class StoreApiVM extends ViewModel {
                                     InvoiceItemResponse invoice = gson.fromJson(gson.toJson(response.getData().invoice_getInvoiceById()), InvoiceItemResponse.class);
                                     callback.onSuccess(invoice);
                                 } else {
-                                    callback.onFailed("Sorry, we were unable to process your payment.");
+                                    callback.onFailed(context.getString(R.string.sorry_we_were_unable_to_process_your_payment));
                                 }
                             }
                         }

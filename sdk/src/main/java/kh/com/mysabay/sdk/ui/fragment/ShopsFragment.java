@@ -103,15 +103,17 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
             viewModel.getShopFromServerGraphQL(getContext());
 
         mAdapter = new ShopAdapter(v.getContext(), item -> {
-//    if (!BuildConfig.DEBUG) {
-            if (!verifyInstallerId(getActivity())) {
-//                PURCHASE_ID = item.packageId;
+//            if (!verifyInstallerId(getActivity())) {
+            ProviderResponse data =  viewModel.getInAppPurchaseProvider("play_store");
+            if (!BuildConfig.DEBUG) {
+                PURCHASE_ID = data.packageId;
+            }
                 viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), item.id);
                 shopItem = item;
                 purchase(v, PURCHASE_ID);
-            } else {
-                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
-            }
+//            } else {
+//                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
+//            }
         });
 
         mLayoutManager = new GridLayoutManager(v.getContext(), getResources().getInteger(R.integer.layout_size));

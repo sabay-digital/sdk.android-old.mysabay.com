@@ -328,7 +328,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     private void showFailDialog() {
         if (!mTimerRunning) {
-            MessageUtil.displayDialog(getContext(), "Sorry, we were unable to process your payment.", colorCodeBackground(), getString(R.string.ok), (dialog, which) -> {
+            MessageUtil.displayDialog(getContext(), getContext().getString(R.string.sorry_we_were_unable_to_process_your_payment), colorCodeBackground(), getString(R.string.ok), (dialog, which) -> {
                 getActivity().finish();
             });
         }

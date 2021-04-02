@@ -175,7 +175,7 @@ public class WebViewActivity extends AppCompatActivity {
 
     private void updateButtons() {
         if (!mTimerRunning) {
-            MessageUtil.displayDialog(this, "Sorry, we were unable to process your payment.", R.color.colorWhite, getString(kh.com.mysabay.sdk.R.string.ok), (dialog, which) -> {
+            MessageUtil.displayDialog(this, getString(R.string.sorry_we_were_unable_to_process_your_payment), R.color.colorWhite, getString(kh.com.mysabay.sdk.R.string.ok), (dialog, which) -> {
                 finish();
             });
         }
