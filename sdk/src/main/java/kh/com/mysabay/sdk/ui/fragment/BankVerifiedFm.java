@@ -65,7 +65,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
 
-    private static final long START_TIME_IN_MILLIS = 62000;
+    private static final long START_TIME_IN_MILLIS = 30000;
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
     private long mEndTime;
     Handler handler = new Handler();
@@ -288,12 +288,9 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             public void onSuccess(InvoiceItemResponse response) {
                 LogUtil.info("InvoiceItemResponse", response.toString());
                 if(!StringUtils.isEmpty(response.ssnTxHash)) {
-                    MessageUtil.displayDialog(getContext(), "Payment Success");
-                    mViewBinding.btnBack.setVisibility(View.VISIBLE);
-                    mViewBinding.btnClose.setVisibility(View.VISIBLE);
                     mCountDownTimer.cancel();
-                    mViewBinding.tvTimer.setText("Purchase Completed");
                     handler.removeCallbacksAndMessages(null);
+                    getActivity().finish();
                 }
             }
 
@@ -325,9 +322,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     private void updateCountDownText() {
         if (mTimerRunning) {
-            mViewBinding.tvTimer.setText("You have 1 minute to purchase " + mTimeLeftInMillis / 1000 + "s");
-        } else {
-            mViewBinding.tvTimer.setText("You have 1 minute to purchase " + 0 + "s");
+            mViewBinding.tvTimer.setText("This payment window will be closed in " + mTimeLeftInMillis / 1000 + "s");
         }
     }
 

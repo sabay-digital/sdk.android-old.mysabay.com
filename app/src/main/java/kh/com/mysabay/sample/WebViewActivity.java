@@ -173,9 +173,7 @@ public class WebViewActivity extends AppCompatActivity {
 
     private void updateCountDownText() {
         if (mTimerRunning) {
-            mViewBinding.tvTimer.setText("You have 1 minute to purchase " + mTimeLeftInMillis / 1000 + "s");
-        } else {
-            mViewBinding.tvTimer.setText("Didn’t get OTP code? request again in ");
+            mViewBinding.tvTimer.setText("This payment window will be closed in " + mTimeLeftInMillis / 1000 + "s");
         }
     }
 
@@ -192,10 +190,9 @@ public class WebViewActivity extends AppCompatActivity {
             public void onSuccess(GetInvoiceByIdQuery.Invoice_getInvoiceById response) {
                 LogUtil.info("Invoice-Response", response.toString());
                 if(!response.ssnTxHash().isEmpty()) {
-                    MessageUtil.displayDialog(getApplicationContext(), "Payment Success");
-                    mViewBinding.btnBack.setVisibility(View.VISIBLE);
-                    mViewBinding.btnClose.setVisibility(View.VISIBLE);
                     mCountDownTimer.cancel();
+                    handler.removeCallbacksAndMessages(null);
+                    finish();
                 }
             }
 
