@@ -54,4 +54,5 @@
     <string name="create">បង្កើត</string>
     <string name="register">បង្កើតគណនី</string>
     <string name="i_want_to_regiser_for_a_mysabay_account">ខ្ញំុចង់បង្កើតគណនី MySabay​</string>
+    <string name="sorry_we_were_unable_to_process_your_payment">Sorry, we were unable to process your payment.</string>
 </resources>

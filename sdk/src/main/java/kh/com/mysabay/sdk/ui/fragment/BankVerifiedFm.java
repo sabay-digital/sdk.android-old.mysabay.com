@@ -65,7 +65,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
 
-    private static final long START_TIME_IN_MILLIS = 30000;
+    private static final long START_TIME_IN_MILLIS = 120000;
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
     private long mEndTime;
     Handler handler = new Handler();
@@ -328,7 +328,7 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
 
     private void showFailDialog() {
         if (!mTimerRunning) {
-            MessageUtil.displayDialog(getContext(), "Purchase failed", colorCodeBackground(), getString(R.string.ok), (dialog, which) -> {
+            MessageUtil.displayDialog(getContext(), getContext().getString(R.string.sorry_we_were_unable_to_process_your_payment), colorCodeBackground(), getString(R.string.ok), (dialog, which) -> {
                 getActivity().finish();
             });
         }

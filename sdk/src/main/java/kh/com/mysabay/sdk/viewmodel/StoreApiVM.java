@@ -443,7 +443,7 @@ public class StoreApiVM extends ViewModel {
                                     EventBus.getDefault().post(new SubscribePayment(Globals.MY_SABAY, item, null));
                                     ((Activity) context).finish();
                                 } else {
-                                    showErrorMsg(context, "Get invoice by id failed");
+                                    showErrorMsg(context, context.getString(R.string.sorry_we_were_unable_to_process_your_payment));
                                 }
                             }
                         }
@@ -452,7 +452,7 @@ public class StoreApiVM extends ViewModel {
 
                 @Override
                 public void onFailure(@NotNull ApolloException e) {
-                    showErrorMsg(e, context, "Get invoice by id failed");
+                    showErrorMsg(e, context, e.getMessage());
                 }
             });
         }
@@ -470,13 +470,13 @@ public class StoreApiVM extends ViewModel {
                         @Override
                         public void run() {
                             if (response.getErrors() != null) {
-                                showErrorMsg(context, "Get invoice by id failed");
+                                showErrorMsg(context, response.getErrors().get(0).getMessage());
                             } else {
                                 if (response.getData().invoice_getInvoiceById() != null) {
                                     InvoiceItemResponse invoice = gson.fromJson(gson.toJson(response.getData().invoice_getInvoiceById()), InvoiceItemResponse.class);
                                     callback.onSuccess(invoice);
                                 } else {
-                                    callback.onFailed("Get invoice by id failed");
+                                    callback.onFailed(context.getString(R.string.sorry_we_were_unable_to_process_your_payment));
                                 }
                             }
                         }
@@ -485,8 +485,7 @@ public class StoreApiVM extends ViewModel {
 
                 @Override
                 public void onFailure(@NotNull ApolloException e) {
-                    callback.onFailed("Get invoice by id failed");
-                    showErrorMsg(e, context, "Get invoice by id failed");
+                    callback.onFailed(e.getMessage());
                 }
             });
         }
@@ -519,7 +518,7 @@ public class StoreApiVM extends ViewModel {
 
                     @Override
                     public void onFailure(@NotNull ApolloException e) {
-                        callback.onFailed(e);
+                        callback.onFailed(e.getMessage());
                     }
                 });
     }

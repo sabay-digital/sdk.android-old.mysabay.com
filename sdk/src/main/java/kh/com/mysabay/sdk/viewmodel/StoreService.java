@@ -341,7 +341,7 @@ public class StoreService extends ViewModel {
                                     if (response.getData() != null) {
                                         callback.onSuccess(response.getData().invoice_getInvoiceById());
                                     } else {
-                                        callback.onFailed("Get Invoice Id Failed");
+                                        callback.onFailed("Sorry, we were unable to process your payment.");
                                     }
                                 }
                             }

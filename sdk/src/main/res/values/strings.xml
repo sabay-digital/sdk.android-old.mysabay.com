@@ -54,6 +54,7 @@
     <string name="i_want_to_regiser_for_a_mysabay_account">I want to register for a MySabay account</string>
     <string name="facebook_app_id">587695748053859</string>
     <string name="fb_login_protocol_scheme">fb587695748053859</string>
+    <string name="sorry_we_were_unable_to_process_your_payment">Sorry, we were unable to process your payment.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="application_do_not_support_in_app_purchase">Apps installed manually via APK do not support In-App Purchase. Please install the app from Google Play Store to use this feature.</string>
