@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
 apply plugin: "com.apollographql.apollo"
+apply plugin: 'digital.wup.android-maven-publish'
 group = 'kh.com.mysabay'
 version = '1.0.1-o'
 
