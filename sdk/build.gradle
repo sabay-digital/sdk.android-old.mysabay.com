@@ -43,6 +43,14 @@ android {
         unitTests.returnDefaultValues = true
     }
 
+    publishing {
+        publications {
+            mavenAar(MavenPublication) {
+                from components.android
+            }
+        }
+    }
+
 }
 
 dependencies {
