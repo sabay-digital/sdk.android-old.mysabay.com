@@ -648,4 +648,7 @@ public class MySabaySDK {
         return storeService.verifyValidSignature(signedData, signature);
     }
 
+    public void postToChargeWithOneTime(Data dataPayment, DataCallback<String> callback) {
+        storeService.postToChargeWithOneTime(dataPayment, callback);
+    }
 }

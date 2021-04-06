@@ -131,7 +131,6 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
         } else {
             WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
             mViewBinding.wv.getSettings().setJavaScriptEnabled(true);
-            mViewBinding.wv.addJavascriptInterface(new OneTime(), "onetime");
             mViewBinding.wv.getSettings().setLoadsImagesAutomatically(true);
             mViewBinding.wv.getSettings().setLoadWithOverviewMode(true);
             mViewBinding.wv.getSettings().setUseWideViewPort(true);
@@ -148,75 +147,24 @@ public class BankVerifiedFm extends BaseFragment<PartialBankProviderVerifiedBind
             mViewBinding.viewWeb.setBackgroundResource(colorCodeBackground());
             mViewBinding.wv.setWebViewClient(new WebViewClient());
 
-            LogUtil.info("request url", mPaymentResponseItem.requestUrl + paymentAddress);
-
-            FormBody.Builder formBuilder = new FormBody.Builder()
-                    .add("hash", mPaymentResponseItem.hash)
-                    .add("signature", mPaymentResponseItem.signature)
-                    .add("public_key", mPaymentResponseItem.publicKey);
-
-            if(mPaymentResponseItem.additionalBody != null) {
-                try {
-                    JSONObject jsonObject = new JSONObject(mPaymentResponseItem.additionalBody.toString());
-                    Iterator x = jsonObject.keys();
-                    while (x.hasNext()){
-                        String key = (String) x.next();
-                        formBuilder.add(key, jsonObject.get(key).toString());
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            RequestBody formBody = formBuilder.build();
-            Request request = new Request.Builder()
-                    .url(mPaymentResponseItem.requestUrl + paymentAddress)
-                    .post(formBody)
-                    .build();
-
-            OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
-                @NotNull
+            viewModel.postToChargeWithOneTime(mPaymentResponseItem, new DataCallback<String>() {
                 @Override
-                public Response intercept(@NotNull Chain chain) throws IOException {
-                    Request.Builder requestBuilder = chain.request().newBuilder();
-                    if (mPaymentResponseItem.additionalHeader != null) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(mPaymentResponseItem.additionalHeader.toString());
-                            Iterator x = jsonObject.keys();
-                            while (x.hasNext()){
-                                String key = (String) x.next();
-                                requestBuilder.addHeader(key, jsonObject.get(key).toString());
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    return chain.proceed(requestBuilder.build());
-                }
-            });
-
-
-            okHttpClient.build().newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    LogUtil.info("Error", e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, final Response response) throws IOException {
-                    final String htmlString = response.body().string();
+                public void onSuccess(String response) {
                     mViewBinding.wv.post(new Runnable() {
                         @Override
                         public void run() {
                             mViewBinding.waitingView.progressBar.setVisibility(View.GONE);
                             mViewBinding.wv.clearCache(true);
-                            mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl, htmlString, "text/html", "utf-8", null);
+                            mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl, response, "text/html", "utf-8", null);
                         }
                     });
                 }
-            });
 
+                @Override
+                public void onFailed(Object error) {
+                    MessageUtil.displayDialog(getContext(), error.toString());
+                }
+            });
         }
     }
 

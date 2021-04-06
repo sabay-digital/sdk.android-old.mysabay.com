@@ -31,7 +31,9 @@ import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.matomo.sdk.extra.EcommerceItems;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.inject.Inject;
 import io.reactivex.disposables.CompositeDisposable;
@@ -60,6 +62,13 @@ import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
 import kh.com.mysabay.sdk.webservice.AbstractDisposableObs;
 import kh.com.mysabay.sdk.webservice.Constant;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 /**
  * Created by Tan Phirum on 3/8/20
@@ -379,6 +388,67 @@ public class StoreApiVM extends ViewModel {
                         MessageUtil.displayDialog(context, "Error" + throwable.getMessage());
                     }
                 }));
+    }
+
+    public void postToChargeWithOneTime(Data paymentData, DataCallback<String> callback) {
+        FormBody.Builder formBuilder = new FormBody.Builder()
+                .add("hash", paymentData.hash)
+                .add("signature", paymentData.signature)
+                .add("public_key", paymentData.publicKey);
+
+        if(paymentData.additionalBody != null) {
+            try {
+                JSONObject jsonObject = new JSONObject(paymentData.additionalBody.toString());
+                Iterator x = jsonObject.keys();
+                while (x.hasNext()){
+                    String key = (String) x.next();
+                    formBuilder.add(key, jsonObject.get(key).toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        RequestBody formBody = formBuilder.build();
+        Request request = new Request.Builder()
+                .url(paymentData.requestUrl + paymentData.paymentAddress)
+                .post(formBody)
+                .build();
+
+        OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
+            @NotNull
+            @Override
+            public okhttp3.Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
+                Request.Builder requestBuilder = chain.request().newBuilder();
+                if (paymentData.additionalHeader != null) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(paymentData.additionalHeader.toString());
+                        Iterator x = jsonObject.keys();
+                        while (x.hasNext()){
+                            String key = (String) x.next();
+                            requestBuilder.addHeader(key, jsonObject.get(key).toString());
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                return chain.proceed(requestBuilder.build());
+            }
+        });
+
+        okHttpClient.build().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onSuccess(e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+                final String htmlString = response.body().string();
+                callback.onSuccess(htmlString);
+            }
+        });
     }
 
     /**

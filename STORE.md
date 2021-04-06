@@ -165,7 +165,30 @@ To make purchase with pre-authorization provider, call this function
 
 ## One Time Purchase
 
-To make purchase with one-time provider, you have to create [Payment Detail](#payment-detail). For detail instruction to process one-time payment, you can read [One-Time Instruction](). 
+To make purchase with one-time provider, call this function
+```java
+    MySabaySDK.getInstance().postToChargeWithOneTime(data, new DataCallback<String>() {
+        @Override
+        public void onSuccess(String response) {
+            mViewBinding.wv.post(new Runnable() {
+                @Override
+                public void run() {
+                    mViewBinding.wv.clearCache(true);
+                    mViewBinding.wv.loadDataWithBaseURL(data.requestUrl, response, "text/html", "utf-8", null);
+                }
+            });
+        }
+
+        @Override
+        public void onFailed(Object error) {
+            MessageUtil.displayDialog(WebViewActivity.this, error.toString());
+        }
+    });
+```
+
+- Arguments:
+    - `data - Data`: data that get from CreatePaymentDetail
+    - `response - String`: string of html form 
 
 ## Payment Status
 

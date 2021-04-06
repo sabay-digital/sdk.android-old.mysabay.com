@@ -9,30 +9,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.mysabay.sdk.GetInvoiceByIdQuery;
-
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.Iterator;
-
 import kh.com.mysabay.sample.databinding.ActivityWebViewBinding;
 import kh.com.mysabay.sdk.BuildConfig;
 import kh.com.mysabay.sdk.MySabaySDK;
 import kh.com.mysabay.sdk.callback.DataCallback;
-import kh.com.mysabay.sdk.pojo.onetime.OneTime;
 import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 public class WebViewActivity extends AppCompatActivity {
 
     private ActivityWebViewBinding mViewBinding;
@@ -60,93 +43,41 @@ public class WebViewActivity extends AppCompatActivity {
 
         startTimer();
         scheduledCheckPaymentStatus(handler, mPaymentResponseItem.invoiceId, mTimeLeftInMillis, delay);
-            WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
-            mViewBinding.wv.getSettings().setJavaScriptEnabled(true);
-            mViewBinding.wv.addJavascriptInterface(new OneTime(), "onetime");
-            mViewBinding.wv.getSettings().setLoadsImagesAutomatically(true);
-            mViewBinding.wv.getSettings().setLoadWithOverviewMode(true);
-            mViewBinding.wv.getSettings().setUseWideViewPort(true);
-            mViewBinding.wv.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
-            mViewBinding.wv.getSettings().setSupportZoom(true);
-            mViewBinding.wv.getSettings().setBuiltInZoomControls(true);
-            mViewBinding.wv.getSettings().setDisplayZoomControls(false);
-            mViewBinding.wv.getSettings().setDomStorageEnabled(true);
-            mViewBinding.wv.getSettings().setMinimumFontSize(1);
-            mViewBinding.wv.getSettings().setMinimumLogicalFontSize(1);
-            mViewBinding.wv.clearHistory();
-            mViewBinding.wv.clearCache(true);
-            mViewBinding.wv.setWebViewClient(new WebViewClient());
 
-            LogUtil.info("request url", mPaymentResponseItem.requestUrl + mPaymentResponseItem.paymentAddress);
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
+        mViewBinding.wv.getSettings().setJavaScriptEnabled(true);
+        mViewBinding.wv.getSettings().setLoadsImagesAutomatically(true);
+        mViewBinding.wv.getSettings().setLoadWithOverviewMode(true);
+        mViewBinding.wv.getSettings().setUseWideViewPort(true);
+        mViewBinding.wv.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        mViewBinding.wv.getSettings().setSupportZoom(true);
+        mViewBinding.wv.getSettings().setBuiltInZoomControls(true);
+        mViewBinding.wv.getSettings().setDisplayZoomControls(false);
+        mViewBinding.wv.getSettings().setDomStorageEnabled(true);
+        mViewBinding.wv.getSettings().setMinimumFontSize(1);
+        mViewBinding.wv.getSettings().setMinimumLogicalFontSize(1);
+        mViewBinding.wv.clearHistory();
+        mViewBinding.wv.clearCache(true);
+        mViewBinding.wv.setWebViewClient(new WebViewClient());
 
-            FormBody.Builder formBuilder = new FormBody.Builder()
-                    .add("hash", mPaymentResponseItem.hash)
-                    .add("signature", mPaymentResponseItem.signature)
-                    .add("public_key", mPaymentResponseItem.publicKey);
-
-            if(mPaymentResponseItem.additionalBody != null) {
-                try {
-                    JSONObject jsonObject = new JSONObject(mPaymentResponseItem.additionalBody.toString());
-                    Iterator x = jsonObject.keys();
-                    while (x.hasNext()){
-                        String key = (String) x.next();
-                        formBuilder.add(key, jsonObject.get(key).toString());
+        MySabaySDK.getInstance().postToChargeWithOneTime(mPaymentResponseItem, new DataCallback<String>() {
+            @Override
+            public void onSuccess(String response) {
+                mViewBinding.wv.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mViewBinding.wv.clearCache(true);
+                        mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl, response, "text/html", "utf-8", null);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                });
             }
 
-            RequestBody formBody = formBuilder.build();
-            Request request = new Request.Builder()
-                    .url(mPaymentResponseItem.requestUrl + mPaymentResponseItem.paymentAddress)
-                    .post(formBody)
-                    .build();
-
-            OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
-                @NotNull
-                @Override
-                public Response intercept(@NotNull Interceptor.Chain chain) throws IOException {
-                    Request.Builder requestBuilder = chain.request().newBuilder();
-                    if (mPaymentResponseItem.additionalHeader != null) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(mPaymentResponseItem.additionalHeader.toString());
-                            Iterator x = jsonObject.keys();
-                            while (x.hasNext()){
-                                String key = (String) x.next();
-                                requestBuilder.addHeader(key, jsonObject.get(key).toString());
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    return chain.proceed(requestBuilder.build());
-                }
-            });
-
-
-            okHttpClient.build().newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    LogUtil.info("Error", e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, final Response response) throws IOException {
-                    final String htmlString = response.body().string();
-                    LogUtil.info("Success", htmlString);
-                    mViewBinding.wv.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mViewBinding.wv.clearCache(true);
-                            mViewBinding.wv.loadDataWithBaseURL(mPaymentResponseItem.requestUrl, htmlString, "text/html", "utf-8", null);
-                        }
-                    });
-                }
-            });
-
-        }
+            @Override
+            public void onFailed(Object error) {
+                MessageUtil.displayDialog(WebViewActivity.this, error.toString());
+            }
+        });
+    }
 
     private void startTimer() {
         mEndTime = System.currentTimeMillis() + mTimeLeftInMillis;

@@ -314,7 +314,6 @@ public class UserApiVM extends ViewModel {
      */
     public void verifyMySabayAccount(Context context, String username, String password) {
         _networkState.setValue(new NetworkState(NetworkState.Status.LOADING));
-        LogUtil.info("Password", RSA.sha256String(password));
         apolloClient.mutate(new VerifyMySabayMutation(username, RSA.sha256String(password))).enqueue(new ApolloCall.Callback<VerifyMySabayMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<VerifyMySabayMutation.Data> response) {
@@ -549,7 +548,6 @@ public class UserApiVM extends ViewModel {
 
             @Override
             public void onFailure(@NotNull ApolloException e) {
-                LogUtil.info("Error", e.getMessage());
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
@@ -668,7 +666,6 @@ public class UserApiVM extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        LogUtil.debug(TAG, "onClearerd call");
         if (mCompositeDisposable != null) {
             mCompositeDisposable.clear();
             mCompositeDisposable = null;
