@@ -116,7 +116,6 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         callbackManager = CallbackManager.Factory.create();
 
         mViewBinding.btnLoginGuest.setOnClickListener(v -> {
-            LogUtil.info("AAAA", getDeviceId(v.getContext()));
             if(getDeviceId(v.getContext()) != null) {
                 MySabaySDK.getInstance().loginGuest(getDeviceId(v.getContext()), new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
                     @Override

@@ -21,7 +21,7 @@ This is the official MySabay SDK for native Android application. To use this SDK
 
 # SDK Functionalities
 
-Currently, MySabay SDK both provides UI support and functionalities Support
+Currently, MySabay SDK provides both UI support and functionalities Support
 
 ## UI Support
 
@@ -51,7 +51,7 @@ In ui support you can also use theses function too.
 
 ## Functionalities support
 
-### user
+### User
 
 |         Function        |           Desciption              |
 | ----------------------- | --------------------------------- |
@@ -68,7 +68,7 @@ In ui support you can also use theses function too.
 | ```getUserProfile()``` | To get user's profile. |
 | ```refreshTokens()``` | To refresh login's tokens. |
 | ```verifyTokens()``` | To check if token is verified |
-| ```saveAppItem(String item``` | To store appItem `(accessToken, refreshToken, expire)` in local storage|
+| ```saveAppItem(String item)``` | To store appItem `(accessToken, refreshToken, expire)` in local storage|
 | ```currentToken()``` | To get current accessToken|
 | ```currentRefreshToken()``` | To get current refreshToken|
 | ```logout()``` | To logout user |
