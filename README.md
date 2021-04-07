@@ -2,10 +2,10 @@
 
 This is the official MySabay SDK for native Android application. To use this SDK, you can follow the guides below or download the test with the example project we have in this repository.
 
-- [Installation & Configuration](INSTALLATION.md)
-- [Authentication & Account](ACCOUNT.md)
-- [Store & Purchase](STORE.md)
-- [Tracking](TRACKING.md)
+- [Installation & Configuration](/documentation/INSTALLATION.md)
+- [Authentication & Account](/documentation/ACCOUNT.md)
+- [Store & Purchase](/documentation/STORE.md)
+- [Tracking](/documentation/TRACKING.md)
 
 # SDK Functionalities
 
