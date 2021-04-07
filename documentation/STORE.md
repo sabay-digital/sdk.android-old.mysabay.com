@@ -2,6 +2,21 @@
 
 MySabay SDK provides UI support and functionalities for your app to access store process.
 
+- [Store API for MySabay Android SDK](#store-api-for-mysabay-android-sdk)
+  - [UI Support](#ui-support)
+    - [Store Process](#store-process)
+  - [Funtionalities](#funtionalities)
+  - [Store Products](#store-products)
+  - [Payment Detail](#payment-detail)
+  - [In App Purchase](#in-app-purchase)
+  - [Pre Authorization Purchase](#pre-authorization-purchase)
+  - [One Time Purchase](#one-time-purchase)
+  - [Payment Status](#payment-status)
+  - [How Can I Implement Purchase With MySabay SDK?](#how-can-i-implement-purchase-with-mysabay-sdk)
+    - [In-app purchase](#in-app-purchase-1)
+    - [Pre-authorization purchase](#pre-authorization-purchase-1)
+    - [One-time purchase](#one-time-purchase-1)
+
 ## UI Support
 
 MySabay SDK built-in with ui support for access store. This will make you easy without making your own ui show store products or handle payment process.
@@ -52,13 +67,8 @@ Call this function if you want to use ui support for store, all you will do is t
     
 ```json
     {
-        "amount":"80.0",
-        "hash":"d15052dfb870306b0d55a785e815852729da2bb1a71e11041f7c090c1551a850",
-        "label":"+12 Diamonds",
-        "message":"Payment Completed.",
-        "package_id":"kh.com.sabay.aog.local.2_usd",
-        "psp_asset_code":"sc",
-        "status":200
+        "txHash": "f1aa24eddccc727d5b796d196ef26ea674656dd352b6ef277ce319073927cee8",
+        "paymentAddress": "606d1d51c9bf420011a68da4*invoice.master.sabay.com"
     }
 ```
 
@@ -127,7 +137,9 @@ Every purchase with MySabay SDK has to be recorded in our network. Call function
 To purchase with android in-app purchase, call below function. 
 
 ```java 
-    MySabaySDK.getInstance().verifyInAppPurcahse(data, googleVerifyBody, new DataCallback<Object>() {
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
+    MySabaySDK.getInstance().verifyInAppPurchase(data, googleVerifyBody, new DataCallback<Object>() {
         @Override
         public void onSuccess(Object response) {
             LogUtil.info("Verify In app purchase", response.toString());
@@ -148,6 +160,8 @@ To purchase with android in-app purchase, call below function.
 To make purchase with pre-authorization provider, call this function 
 
 ```java 
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
     MySabaySDK.getInstance().postToChargePreAuth(data, new DataCallback<Object>() {
         @Override
         public void onSuccess(Object response) {
@@ -165,7 +179,32 @@ To make purchase with pre-authorization provider, call this function
 
 ## One Time Purchase
 
-To make purchase with one-time provider, you have to create [Payment Detail](#payment-detail). For detail instruction to process one-time payment, you can read [One-Time Instruction](). 
+To make purchase with one-time provider, call this function
+```java
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
+    MySabaySDK.getInstance().postToChargeWithOneTime(data, new DataCallback<String>() {
+        @Override
+        public void onSuccess(String response) {
+            mViewBinding.wv.post(new Runnable() {
+                @Override
+                public void run() {
+                    mViewBinding.wv.clearCache(true);
+                    mViewBinding.wv.loadDataWithBaseURL(data.requestUrl, response, "text/html", "utf-8", null);
+                }
+            });
+        }
+
+        @Override
+        public void onFailed(Object error) {
+            MessageUtil.displayDialog(WebViewActivity.this, error.toString());
+        }
+    });
+```
+
+- Arguments:
+    - `data - Data`: data that get from CreatePaymentDetail
+    - `response - String`: string of html form 
 
 ## Payment Status
 
@@ -184,7 +223,7 @@ When purchase is finished, you have to check status for invoice that you have cr
     }); 
 ```
 
-Invoice status will take some time to update. To check payment status schedully, call this function.
+Invoice status will take some time to update. To check payment status as schedule, call this function.
 
 ```java 
   MySabaySDK.getInstance().scheduledCheckPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {

@@ -2,6 +2,10 @@
 
 This is the quick guide to install MySabay Android SDK in your app.
 
+- [Installation for MySabay Android SDK](#installation-for-mysabay-android-sdk)
+  - [Service Code](#service-code)
+  - [Installation](#installation)
+
 ## Service Code
 
 MySabay SDK distinguishes the service based on service code. You can create your service at ....
@@ -28,6 +32,7 @@ dependencies {
 ```
 
 Add dataBinding to gradle
+
 ```gradle
 android {
     ...
@@ -38,7 +43,7 @@ android {
 ```
 
 Add compileOptions
-```grale    
+```gradle    
 android {
     ...
     compileOptions {
@@ -47,22 +52,42 @@ android {
 }
 ```
 
-Add thease dependencies if you use android appcompat
+Add these dependencies if you use android appcompat
 ```gradle
 dependencies {
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'org.matomo.sdk:tracker:4.0.2'
     implementation 'com.googlecode.json-simple:json-simple:1.1'
     implementation 'org.apache.commons:commons-lang3:3.8.1'
+    implementation 'com.android.billingclient:billing:3.0.1'
+    implementation 'com.facebook.android:facebook-android-sdk:4.40.0'
 }
 ```
 
 3. Declare Permissions in AndroidManifest.xml
+
+Add `tools:replace="android:name"` in application tag
+
 ```java
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <application
+        android:name=".SampleApp"
+        android:allowBackup="true"
+        android:fitsSystemWindows="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/SdkAppTheme"
+        android:usesCleartextTraffic="true"
+        tools:replace="android:name">
+
+        ...
+
+    </application>
 ```
 
 4. Initialize SDK
@@ -83,13 +108,13 @@ public class MyApplication extends SdkApplication {
         super.onCreate();
         //MySabaySDK has default configuration with dark theme and sandbox url.
         final SdkConfiguration configuration = new SdkConfiguration.Builder(
-                "SDK SAMPLE", //mysabay  app name
-                "sdk_sample", // service code
-                "", // license key
-                "") // merchant id
-                .setSdkTheme(SdkTheme.Dark)
-                .setToUseSandBox(true).build();
-                MySabaySDK.Impl.setDefaultInstanceConfiguration(this, configuration);
+            "SDK SAMPLE", //mysabay  app name
+            "sdk_sample", // service code
+            "", // license key
+            "") // merchant id
+            .setSdkTheme(SdkTheme.Dark)
+            .setToUseSandBox(true).build();
+        MySabaySDK.Impl.setDefaultInstanceConfiguration(this, configuration);        
     }
 }
 ```

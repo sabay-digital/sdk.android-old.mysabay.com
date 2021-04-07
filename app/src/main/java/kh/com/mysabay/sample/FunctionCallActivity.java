@@ -1,14 +1,20 @@
 package kh.com.mysabay.sample;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -71,6 +77,7 @@ import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
 import kh.com.mysabay.sdk.utils.FontUtils;
 import kh.com.mysabay.sdk.utils.LogUtil;
 import kh.com.mysabay.sdk.utils.MessageUtil;
+
 import static com.android.billingclient.api.BillingClient.SkuType.INAPP;
 
 public class FunctionCallActivity extends AppCompatActivity implements PurchasesUpdatedListener {
@@ -89,6 +96,9 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
     GoogleVerifyBody googleVerifyBody = new GoogleVerifyBody();
     private CallbackManager callbackManager;
 
+    private static final int PERMISSIONS_REQUEST_READ_PHONE_STATE = 999;
+    private TelephonyManager mTelephonyManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,20 +116,25 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         callbackManager = CallbackManager.Factory.create();
 
         mViewBinding.btnLoginGuest.setOnClickListener(v -> {
-            MySabaySDK.getInstance().loginGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
-                @Override
-                public void onSuccess(LoginGuestMutation.Sso_loginGuest response) {
-                    AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
-                    String encrypted = new Gson().toJson(appItem);
-                    MySabaySDK.getInstance().saveAppItem(encrypted);
-                    MessageUtil.displayDialog(v.getContext(), new Gson().toJson(response.toString()));
-                }
+            LogUtil.info("AAAA", getDeviceId(v.getContext()));
+            if(getDeviceId(v.getContext()) != null) {
+                MySabaySDK.getInstance().loginGuest(getDeviceId(v.getContext()), new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
+                    @Override
+                    public void onSuccess(LoginGuestMutation.Sso_loginGuest response) {
+                        AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
+                        String encrypted = new Gson().toJson(appItem);
+                        MySabaySDK.getInstance().saveAppItem(encrypted);
+                        MessageUtil.displayDialog(v.getContext(), new Gson().toJson(response.toString()));
+                    }
 
-                @Override
-                public void onFailed(Object error) {
-                    LogUtil.info("Error", error.toString());
-                }
-            });
+                    @Override
+                    public void onFailed(Object error) {
+                        LogUtil.info("Error", error.toString());
+                    }
+                });
+            } else {
+                MessageUtil.displayDialog(v.getContext(), "Cannot get your deviceID");
+            }
         });
 
         mViewBinding.btnLoginFb.setReadPermissions("email");
@@ -213,7 +228,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         mViewBinding.edtMysabayUsername.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus) {
+                if (!hasFocus) {
                     MySabaySDK.getInstance().checkExistingMySabayUsername(mViewBinding.edtMysabayUsername.getText().toString(), new DataCallback<Boolean>() {
                         @Override
                         public void onSuccess(Boolean response) {
@@ -344,7 +359,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             String password = mViewBinding.edtRequestNewPassword.getText().toString();
             String phoneNumber = mViewBinding.edtPhone.getText().toString();
             String otpCode = mViewBinding.edtMysabayWithPhoneVerifyCode.getText().toString();
-            if(!otpCode.isEmpty()) {
+            if (!otpCode.isEmpty()) {
                 mViewBinding.viewPb.setVisibility(View.VISIBLE);
                 LogUtil.info("Info", username + " " + password + " " + phoneNumber + " " + otpCode);
                 MySabaySDK.getInstance().createMySabayWithPhone(username, password, phoneNumber, otpCode, new DataCallback<CreateMySabayLoginWithPhoneMutation.Sso_createMySabayLoginWithPhone>() {
@@ -368,27 +383,27 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             }
         });
 
-        mViewBinding.btnLoginMysabay.setOnClickListener(v-> {
+        mViewBinding.btnLoginMysabay.setOnClickListener(v -> {
             String username = mViewBinding.edtUsername.getText().toString();
             String password = mViewBinding.edtPassword.getText().toString();
             if (!username.isEmpty() && !password.isEmpty()) {
-                    mViewBinding.viewPb.setVisibility(View.VISIBLE);
-                    MySabaySDK.getInstance().loginWithMySabay(username, password, new DataCallback<LoginWithMySabayMutation.Sso_loginMySabay>() {
-                        @Override
-                        public void onSuccess(LoginWithMySabayMutation.Sso_loginMySabay response) {
-                            mViewBinding.viewPb.setVisibility(View.GONE);
-                            AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
-                            String encrypted = new Gson().toJson(appItem);
-                            MySabaySDK.getInstance().saveAppItem(encrypted);
-                            MessageUtil.displayDialog(v.getContext(), "Login with mysabay success");
-                        }
+                mViewBinding.viewPb.setVisibility(View.VISIBLE);
+                MySabaySDK.getInstance().loginWithMySabay(username, password, new DataCallback<LoginWithMySabayMutation.Sso_loginMySabay>() {
+                    @Override
+                    public void onSuccess(LoginWithMySabayMutation.Sso_loginMySabay response) {
+                        mViewBinding.viewPb.setVisibility(View.GONE);
+                        AppItem appItem = new AppItem(response.accessToken(), response.refreshToken(), response.expire());
+                        String encrypted = new Gson().toJson(appItem);
+                        MySabaySDK.getInstance().saveAppItem(encrypted);
+                        MessageUtil.displayDialog(v.getContext(), "Login with mysabay success");
+                    }
 
-                        @Override
-                        public void onFailed(Object error) {
-                            mViewBinding.viewPb.setVisibility(View.GONE);
-                            MessageUtil.displayDialog(v.getContext(), "Login with mysbay failed");
-                        }
-                    });
+                    @Override
+                    public void onFailed(Object error) {
+                        mViewBinding.viewPb.setVisibility(View.GONE);
+                        MessageUtil.displayDialog(v.getContext(), "Login with mysbay failed");
+                    }
+                });
             } else {
                 MessageUtil.displayDialog(v.getContext(), "Please input data");
             }
@@ -448,8 +463,8 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                 @Override
                 public void onSuccess(GetProductsByServiceCodeQuery.Store_listProduct response) {
                     shopItems = new ArrayList<ShopItem>();
-                    List<GetProductsByServiceCodeQuery.Product> products =  response.products();
-                    for (GetProductsByServiceCodeQuery.Product product: products) {
+                    List<GetProductsByServiceCodeQuery.Product> products = response.products();
+                    for (GetProductsByServiceCodeQuery.Product product : products) {
                         ShopItem shopItem = new Gson().fromJson(new Gson().toJson(product), ShopItem.class);
                         shopItems.add(shopItem);
                     }
@@ -463,43 +478,43 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             });
         });
 
-        mViewBinding.btnPaymentProvider.setOnClickListener(v-> {
+        mViewBinding.btnPaymentProvider.setOnClickListener(v -> {
             if (shopItem != null) {
-            MySabaySDK.getInstance().getPaymentServiceProvidersByProduct(shopItem.id, new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
-                @Override
-                public void onSuccess(Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct response) {
-                    List<Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider> providers = response.paymentServiceProviders();
-                    mySabayItemResponses = new ArrayList<>();
-                    for (Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider payment : providers) {
-                        MySabayItemResponse paymentProvider = new Gson().fromJson(new Gson().toJson(payment), MySabayItemResponse.class);
-                        mySabayItemResponses.add(paymentProvider);
+                MySabaySDK.getInstance().getPaymentServiceProvidersByProduct(shopItem.id, new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
+                    @Override
+                    public void onSuccess(Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct response) {
+                        List<Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider> providers = response.paymentServiceProviders();
+                        mySabayItemResponses = new ArrayList<>();
+                        for (Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider payment : providers) {
+                            MySabayItemResponse paymentProvider = new Gson().fromJson(new Gson().toJson(payment), MySabayItemResponse.class);
+                            mySabayItemResponses.add(paymentProvider);
+                        }
+                        mViewBinding.btnGroup.setVisibility(View.VISIBLE);
+                        if (checkMySabayProvider(mySabayItemResponses)) {
+                            mViewBinding.btnMysabay.setVisibility(View.VISIBLE);
+                        } else {
+                            mViewBinding.btnMysabay.setVisibility(View.GONE);
+                        }
+                        if (checkOneTimeProvider(mySabayItemResponses)) {
+                            mViewBinding.btnThirdBankProvider.setVisibility(View.VISIBLE);
+                        } else {
+                            mViewBinding.btnThirdBankProvider.setVisibility(View.GONE);
+                        }
+                        if (checkIapProvider(mySabayItemResponses)) {
+                            ProviderResponse psp = MySabaySDK.getInstance().getInAppPurchaseProvider("play_store");
+                            LogUtil.info("Bonus", psp.label);
+                            mViewBinding.btnInAppPurchase.setVisibility(View.VISIBLE);
+                            mViewBinding.lblInAppPurchase.setText(psp.label);
+                        } else {
+                            mViewBinding.btnInAppPurchase.setVisibility(View.GONE);
+                        }
                     }
-                    mViewBinding.btnGroup.setVisibility(View.VISIBLE);
-                    if (checkMySabayProvider(mySabayItemResponses)) {
-                        mViewBinding.btnMysabay.setVisibility(View.VISIBLE);
-                    } else {
-                        mViewBinding.btnMysabay.setVisibility(View.GONE);
-                    }
-                    if (checkOneTimeProvider(mySabayItemResponses)) {
-                        mViewBinding.btnThirdBankProvider.setVisibility(View.VISIBLE);
-                    } else {
-                        mViewBinding.btnThirdBankProvider.setVisibility(View.GONE);
-                    }
-                    if (checkIapProvider(mySabayItemResponses)) {
-                        ProviderResponse psp = MySabaySDK.getInstance().getInAppPurchaseProvider("play_store");
-                        LogUtil.info("Bonus", psp.label);
-                        mViewBinding.btnInAppPurchase.setVisibility(View.VISIBLE);
-                        mViewBinding.lblInAppPurchase.setText(psp.label);
-                    } else {
-                        mViewBinding.btnInAppPurchase.setVisibility(View.GONE);
-                    }
-                }
 
-                @Override
-                public void onFailed(Object error) {
-                    LogUtil.info("Error", error.toString());
-                }
-            });
+                    @Override
+                    public void onFailed(Object error) {
+                        LogUtil.info("Error", error.toString());
+                    }
+                });
 
             } else {
                 MessageUtil.displayDialog(v.getContext(), "Please select item first");
@@ -513,7 +528,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             mViewBinding.btnMysabay.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorWhite);
             mViewBinding.btnThirdBankProvider.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorYellow);
             mViewBinding.btnInAppPurchase.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorWhite);
-           showBankProviders(v.getContext(), get3PartyCheckout(mySabayItemResponses));
+            showBankProviders(v.getContext(), get3PartyCheckout(mySabayItemResponses));
         });
 
         mViewBinding.btnMysabay.setOnClickListener(v -> {
@@ -521,12 +536,12 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             mViewBinding.btnThirdBankProvider.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorWhite);
             mViewBinding.btnInAppPurchase.setBackgroundResource(kh.com.mysabay.sdk.R.color.colorWhite);
             mViewBinding.sabayProvider.setVisibility(View.VISIBLE);
-            for (ProviderResponse provider: MySabaySDK.getInstance().getMySabayProviders()) {
-               if (StringUtils.equals(provider.code, "sabay_coin")) {
-                   mViewBinding.btnSabayCoin.setVisibility(View.VISIBLE);
-                   mViewBinding.btnSabayCoin.setText("SC");
-                   mViewBinding.scBonus.setText(provider.label);
-               }
+            for (ProviderResponse provider : MySabaySDK.getInstance().getMySabayProviders()) {
+                if (StringUtils.equals(provider.code, "sabay_coin")) {
+                    mViewBinding.btnSabayCoin.setVisibility(View.VISIBLE);
+                    mViewBinding.btnSabayCoin.setText("SC");
+                    mViewBinding.scBonus.setText(provider.label);
+                }
                 if (StringUtils.equals(provider.code, "sabay_gold")) {
                     mViewBinding.btnSabayGold.setVisibility(View.VISIBLE);
                     mViewBinding.btnSabayGold.setText("SG");
@@ -614,11 +629,11 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             dialogShop.dismiss();
         }
         ShopItemAdapter adapter = new ShopItemAdapter(context, data, item -> {
-           if (item != null) {
-               shopItem = item;
-               mViewBinding.shopItem.setText(shopItem.properties.displayName);
-           }
-           if (dialogShop != null)
+            if (item != null) {
+                shopItem = item;
+                mViewBinding.shopItem.setText(shopItem.properties.displayName);
+            }
+            if (dialogShop != null)
                 dialogShop.dismiss();
             dialogShop = null;
         });
@@ -648,42 +663,42 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
 
     public boolean checkMySabayProvider(List<MySabayItemResponse> mySabayItemResponses) {
         boolean isFound = false;
-        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+        for (MySabayItemResponse mySabayItemResponse : mySabayItemResponses) {
             if (mySabayItemResponse.type.equals(Globals.MY_SABAY_PROVIDER)) {
                 isFound = true;
             }
         }
-        return  isFound;
+        return isFound;
     }
 
     public boolean checkOneTimeProvider(List<MySabayItemResponse> mySabayItemResponses) {
         boolean isFound = false;
-        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+        for (MySabayItemResponse mySabayItemResponse : mySabayItemResponses) {
             if (mySabayItemResponse.type.equals(Globals.ONE_TIME_PROVIDER)) {
                 isFound = true;
             }
         }
-        return  isFound;
+        return isFound;
     }
 
     public boolean checkIapProvider(List<MySabayItemResponse> mySabayItemResponses) {
         boolean isFound = false;
-        for (MySabayItemResponse mySabayItemResponse: mySabayItemResponses) {
+        for (MySabayItemResponse mySabayItemResponse : mySabayItemResponses) {
             if (mySabayItemResponse.type.equals(Globals.IAP_PROVIDER)) {
                 isFound = true;
             }
         }
-        return  isFound;
+        return isFound;
     }
 
 
     public void payment(Context context, ShopItem shopItem, ProviderResponse provider, String type) {
         List<Object> items = new ArrayList<>();
-        JSONObject jsonObject=new JSONObject();
+        JSONObject jsonObject = new JSONObject();
         JSONParser parser = new JSONParser();
 
         try {
-            jsonObject.put("package_id",provider.packageId);
+            jsonObject.put("package_id", provider.packageId);
             jsonObject.put("displayName", shopItem.properties.displayName);
             jsonObject.put("packageCode", shopItem.properties.packageCode);
             items.add(parser.parse(jsonObject.toString()));
@@ -702,7 +717,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                 LogUtil.info("Response-Purchase", new Gson().toJson(response));
                 Data data = new Gson().fromJson(new Gson().toJson(response), Data.class);
                 if (type == "pre-auth") {
-                    MySabaySDK.getInstance().postToChargePreAuth(data, new DataCallback<Object>() {
+                    MySabaySDK.getInstance().createPreAuthPayment(data, new DataCallback<Object>() {
                         @Override
                         public void onSuccess(Object response) {
                             mViewBinding.viewPb.setVisibility(View.GONE);
@@ -731,8 +746,8 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                             MessageUtil.displayDialog(context, error.toString());
                         }
                     });
-                } else if (type == "iap"){
-                    MySabaySDK.getInstance().verifyInAppPurcahse(data, googleVerifyBody, new DataCallback<Object>() {
+                } else if (type == "iap") {
+                    MySabaySDK.getInstance().verifyInAppPurchase(data, googleVerifyBody, new DataCallback<Object>() {
                         @Override
                         public void onSuccess(Object response) {
                             mViewBinding.viewPb.setVisibility(View.GONE);
@@ -783,7 +798,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
 
         for (MySabayItemResponse item : mySabayItem) {
             if (item.type.equals(Globals.ONE_TIME_PROVIDER)) {
-                for (ProviderResponse providerResponse: item.providers) {
+                for (ProviderResponse providerResponse : item.providers) {
                     result.add(providerResponse);
                 }
             }
@@ -797,7 +812,7 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
             initiatePurchase(context, productId);
         }
         //else reconnect service
-        else{
+        else {
             billingClient = BillingClient.newBuilder(context).enablePendingPurchases().setListener(this).build();
             billingClient.startConnection(new BillingClientStateListener() {
                 @Override
@@ -805,9 +820,10 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                     if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                         initiatePurchase(context, productId);
                     } else {
-                        MessageUtil.displayToast(context,"Error "+billingResult.getDebugMessage());
+                        MessageUtil.displayToast(context, "Error " + billingResult.getDebugMessage());
                     }
                 }
+
                 @Override
                 public void onBillingServiceDisconnected() {
                 }
@@ -820,13 +836,12 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult billingResult) {
-                if(billingResult.getResponseCode()== BillingClient.BillingResponseCode.OK){
+                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     Purchase.PurchasesResult queryPurchase = billingClient.queryPurchases(INAPP);
                     List<Purchase> queryPurchases = queryPurchase.getPurchasesList();
-                    if(queryPurchases!=null && queryPurchases.size()>0){
+                    if (queryPurchases != null && queryPurchases.size() > 0) {
                         handlePurchases(queryPurchases);
-                    }
-                    else{
+                    } else {
                         LogUtil.info("Billing cilent", "");
                     }
                 }
@@ -854,9 +869,8 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
                                         .setSkuDetails(skuDetailsList.get(0))
                                         .build();
                                 billingClient.launchBillingFlow(FunctionCallActivity.this, flowParams);
-                            }
-                            else{
-                                MessageUtil.displayToast(context,"Purchase Item not Found");
+                            } else {
+                                MessageUtil.displayToast(context, "Purchase Item not Found");
                             }
                         } else {
                             MessageUtil.displayToast(context, billingResult.getDebugMessage());
@@ -876,24 +890,24 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
             Purchase.PurchasesResult queryAlreadyPurchasesResult = billingClient.queryPurchases(INAPP);
             List<Purchase> alreadyPurchases = queryAlreadyPurchasesResult.getPurchasesList();
-            if(alreadyPurchases!=null){
+            if (alreadyPurchases != null) {
                 handlePurchases(alreadyPurchases);
             }
         }
         //if purchase cancelled
         else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
-            MessageUtil.displayToast(getApplicationContext(),"Purchase Canceled");
+            MessageUtil.displayToast(getApplicationContext(), "Purchase Canceled");
         }
         // Handle any other error msgs
         else {
-            MessageUtil.displayToast(getApplicationContext(),"Error "+billingResult.getDebugMessage());
+            MessageUtil.displayToast(getApplicationContext(), "Error " + billingResult.getDebugMessage());
         }
     }
 
-    void handlePurchases(List<Purchase>  purchases) {
-        for(Purchase purchase:purchases) {
+    void handlePurchases(List<Purchase> purchases) {
+        for (Purchase purchase : purchases) {
             if (!MySabaySDK.getInstance().verifyValidSignature(purchase.getOriginalJson(), purchase.getSignature())) {
-                MessageUtil.displayDialog(getApplicationContext(),"Purchase is invalid");
+                MessageUtil.displayDialog(getApplicationContext(), "Purchase is invalid");
                 return;
             }
 
@@ -945,4 +959,28 @@ public class FunctionCallActivity extends AppCompatActivity implements Purchases
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    public String getDeviceId(Context context) {
+
+        String deviceId = null;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+            deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        } else {
+            final TelephonyManager mTelephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                if (mTelephony.getDeviceId() != null) {
+                    deviceId = mTelephony.getDeviceId();
+                } else {
+                    deviceId = Settings.Secure.getString(
+                            context.getContentResolver(),
+                            Settings.Secure.ANDROID_ID);
+                }
+            }
+        }
+
+        return deviceId;
+
+    }
 }

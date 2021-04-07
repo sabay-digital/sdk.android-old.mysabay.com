@@ -2,6 +2,16 @@
 
 MySabay SDK provides functions for tracking in your app.
 
+- [Tracking API for MySabay Android SDK](#tracking-api-for-mysabay-android-sdk)
+  - [Functions](#functions)
+    - [Tracking Screens](#tracking-screens)
+    - [Tracking Event](#tracking-event)
+    - [Tracking Order](#tracking-order)
+    - [Custom User ID](#custom-user-id)
+    - [Internal tracking within the SDK (**PRIVATE INFORMATION**)](#internal-tracking-within-the-sdk-private-information)
+      - [Tracking Screens](#tracking-screens-1)
+      - [Tracking Events](#tracking-events)
+
 ## Functions
 
 ### Tracking Screens
@@ -9,7 +19,7 @@ MySabay SDK provides functions for tracking in your app.
 This function can be called on screen that triggers when the user visits.
 
 ```java
-	MySabaySDK.getInstance().trackPageView(context, "/activity_main", "/activity_main");
+    MySabaySDK.getInstance().trackPageView(context, "/activity_main", "/activity_main");
 ```
 
 - function: `trackPageView(Context context, String path, String title)`
@@ -102,7 +112,7 @@ You should implement `input` tracking for all buttons in the SDK. For example,
 ```java
     import kh.com.mysabay.sdk.MySabaySDK;
 
-   mViewBinding.btnLogin.setOnClickListener(v -> {
+    mViewBinding.btnLogin.setOnClickListener(v -> {
         MySabaySDK.getInstance().trackEvents(getContext(), "sdk-" + Constant.sso, Constant.tap, "login-with-phone-number");
    });            
 ```
@@ -110,20 +120,20 @@ You should implement `input` tracking for all buttons in the SDK. For example,
 You should implement `process` tracking for any important API call. This will allow us to track whether the call is successful or not.
 
 ```java
-apolloClient.mutate(loginWithPhoneMutation).enqueue(new ApolloCall.Callback<LoginWithPhoneMutation.Data>() {
-    @Override
-    public void onResponse(@NotNull Response<LoginWithPhoneMutation.Data> response) {
-        if (response.getData() != null) {
-            MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-success");
-        } else {
-            MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-failed");
-        } 
-    }
+    MySabaySDK.getInstance().loginWithPhone(phoneNumber, new DataCallback<LoginWithPhoneMutation.Sso_loginPhone>() {
+        @Override
+        public void onSuccess(LoginWithPhoneMutation.Sso_loginPhone response) {
+            if (response.getData() != null) {
+                MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-success");
+            } else {
+                MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-failed");
+            } 
+        }
 
-    @Override
-    public void onFailure(@NotNull ApolloException e) {
-        LogUtil.info("err", e.getMessage());
-        MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-failed");
-    });
-}
+        @Override
+        public void onFailed(Object error) {
+            LogUtil.info("err", e.getMessage());
+            MySabaySDK.getInstance().trackEvents(context, "sdk-" + Constant.sso, Constant.process, "login-with-phone-number-failed");
+        });
+    }
 ```

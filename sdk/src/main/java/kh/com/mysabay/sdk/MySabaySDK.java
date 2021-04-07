@@ -141,7 +141,7 @@ public class MySabaySDK {
      *
      * @param listener return token when login success, failed message if login failed
      */
-    public void showLoginView(LoginListener listener) {
+    public void openLoginScreen(LoginListener listener) {
         if (listener != null)
             this.loginListner = listener;
         AppItem item = gson.fromJson(getAppItem(), AppItem.class);
@@ -328,7 +328,7 @@ public class MySabaySDK {
      *
      * @param listener return with item purchase transaction or failed message
      */
-    public void showStoreView(PaymentListener listener) {
+    public void openStoreScreen(PaymentListener listener) {
         if (listener == null) return;
 
         this.mPaymentListener = listener;
@@ -410,6 +410,11 @@ public class MySabaySDK {
     public String currentToken() {
         AppItem item = gson.fromJson(getAppItem(), AppItem.class);
         return item.token;
+    }
+
+    public String currentRefreshToken() {
+        AppItem item = gson.fromJson(getAppItem(), AppItem.class);
+        return item.refreshToken;
     }
 
     /**
@@ -552,8 +557,8 @@ public class MySabaySDK {
 
     // provided function
 
-    public void loginGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> dataCallback) {
-        userService.loginAsGuest(dataCallback);
+    public void loginGuest(String deviceID, DataCallback<LoginGuestMutation.Sso_loginGuest> dataCallback) {
+        userService.loginAsGuest(deviceID, dataCallback);
     }
 
     public void loginWithPhone(String phoneNumber, DataCallback<LoginWithPhoneMutation.Sso_loginPhone> dataCallback) {
@@ -624,11 +629,11 @@ public class MySabaySDK {
         storeService.createPaymentProcess(pspId, items, amount, currency, callbackData);
     }
 
-    public void postToChargePreAuth(Data data, DataCallback<Object> callback) {
+    public void createPreAuthPayment(Data data, DataCallback<Object> callback) {
         storeService.postToChargePreAuth(data.requestUrl + data.paymentAddress, data.hash, data.signature, data.publicKey, data.paymentAddress, callback);
     }
 
-    public void verifyInAppPurcahse(Data data, GoogleVerifyBody body, DataCallback<Object> callback) {
+    public void verifyInAppPurchase(Data data, GoogleVerifyBody body, DataCallback<Object> callback) {
         storeService.postToChargeInAppPurchase(data, body, callback);
     }
 
@@ -648,4 +653,7 @@ public class MySabaySDK {
         return storeService.verifyValidSignature(signedData, signature);
     }
 
+    public void createOneTimePayment(Data dataPayment, DataCallback<String> callback) {
+        storeService.postToChargeWithOneTime(dataPayment, callback);
+    }
 }
