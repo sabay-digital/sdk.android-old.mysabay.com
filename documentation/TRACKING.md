@@ -2,6 +2,16 @@
 
 MySabay SDK provides functions for tracking in your app.
 
+- [Tracking API for MySabay Android SDK](#tracking-api-for-mysabay-android-sdk)
+  - [Functions](#functions)
+    - [Tracking Screens](#tracking-screens)
+    - [Tracking Event](#tracking-event)
+    - [Tracking Order](#tracking-order)
+    - [Custom User ID](#custom-user-id)
+    - [Internal tracking within the SDK (**PRIVATE INFORMATION**)](#internal-tracking-within-the-sdk-private-information)
+      - [Tracking Screens](#tracking-screens-1)
+      - [Tracking Events](#tracking-events)
+
 ## Functions
 
 ### Tracking Screens

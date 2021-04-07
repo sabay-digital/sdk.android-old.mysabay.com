@@ -2,6 +2,10 @@
 
 This is the quick guide to install MySabay Android SDK in your app.
 
+- [Installation for MySabay Android SDK](#installation-for-mysabay-android-sdk)
+  - [Service Code](#service-code)
+  - [Installation](#installation)
+
 ## Service Code
 
 MySabay SDK distinguishes the service based on service code. You can create your service at ....

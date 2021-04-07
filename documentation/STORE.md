@@ -2,6 +2,21 @@
 
 MySabay SDK provides UI support and functionalities for your app to access store process.
 
+- [Store API for MySabay Android SDK](#store-api-for-mysabay-android-sdk)
+  - [UI Support](#ui-support)
+    - [Store Process](#store-process)
+  - [Funtionalities](#funtionalities)
+  - [Store Products](#store-products)
+  - [Payment Detail](#payment-detail)
+  - [In App Purchase](#in-app-purchase)
+  - [Pre Authorization Purchase](#pre-authorization-purchase)
+  - [One Time Purchase](#one-time-purchase)
+  - [Payment Status](#payment-status)
+  - [How Can I Implement Purchase With MySabay SDK?](#how-can-i-implement-purchase-with-mysabay-sdk)
+    - [In-app purchase](#in-app-purchase-1)
+    - [Pre-authorization purchase](#pre-authorization-purchase-1)
+    - [One-time purchase](#one-time-purchase-1)
+
 ## UI Support
 
 MySabay SDK built-in with ui support for access store. This will make you easy without making your own ui show store products or handle payment process.
