@@ -110,8 +110,8 @@ query getMatomoTrackingId($serviceCode: String!) {
   }
 }
 
-mutation loginGuest {
-  sso_loginGuest {
+mutation loginGuest($deviceID: String!) {
+  sso_loginGuest(deviceID: $deviceID) {
     accessToken
     refreshToken
     expire

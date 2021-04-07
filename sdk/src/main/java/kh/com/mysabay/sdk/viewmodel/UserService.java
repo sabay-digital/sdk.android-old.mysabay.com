@@ -440,8 +440,8 @@ public class UserService extends ViewModel {
         });
     }
 
-    public void loginAsGuest(DataCallback<LoginGuestMutation.Sso_loginGuest> callBackData) {
-        apolloClient.mutate(new LoginGuestMutation()).enqueue(new ApolloCall.Callback<LoginGuestMutation.Data>() {
+    public void loginAsGuest(String deviceId, DataCallback<LoginGuestMutation.Sso_loginGuest> callBackData) {
+        apolloClient.mutate(new LoginGuestMutation(deviceId)).enqueue(new ApolloCall.Callback<LoginGuestMutation.Data>() {
             @Override
             public void onResponse(@NotNull Response<LoginGuestMutation.Data> response) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {

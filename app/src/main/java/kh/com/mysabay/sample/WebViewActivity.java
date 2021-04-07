@@ -60,7 +60,7 @@ public class WebViewActivity extends AppCompatActivity {
         mViewBinding.wv.clearCache(true);
         mViewBinding.wv.setWebViewClient(new WebViewClient());
 
-        MySabaySDK.getInstance().postToChargeWithOneTime(mPaymentResponseItem, new DataCallback<String>() {
+        MySabaySDK.getInstance().createOneTimePayment(mPaymentResponseItem, new DataCallback<String>() {
             @Override
             public void onSuccess(String response) {
                 mViewBinding.wv.post(new Runnable() {

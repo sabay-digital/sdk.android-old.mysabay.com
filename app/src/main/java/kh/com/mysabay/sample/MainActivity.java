@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         mViewBinding.viewPb.setVisibility(View.GONE);
         findViewById(R.id.show_login_screen).setOnClickListener(v -> {
             mViewBinding.viewPb.setVisibility(View.VISIBLE);
-                MySabaySDK.getInstance().showLoginView(new LoginListener() {
+                MySabaySDK.getInstance().openLoginScreen(new LoginListener() {
                     @Override
                     public void loginSuccess(String accessToken) {
                         MessageUtil.displayToast(v.getContext(), "accessToken = " + accessToken);
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mViewBinding.showPaymentPreAuth.setOnClickListener(v-> {
-                MySabaySDK.getInstance().showStoreView(new PaymentListener() {
+                MySabaySDK.getInstance().openStoreScreen(new PaymentListener() {
                     @Override
                     public void purchaseSuccess(SubscribePayment data) {
                         if(data.getType().equals(Globals.APP_IN_PURCHASE)) {

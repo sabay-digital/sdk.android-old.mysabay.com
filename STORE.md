@@ -52,13 +52,8 @@ Call this function if you want to use ui support for store, all you will do is t
     
 ```json
     {
-        "amount":"80.0",
-        "hash":"d15052dfb870306b0d55a785e815852729da2bb1a71e11041f7c090c1551a850",
-        "label":"+12 Diamonds",
-        "message":"Payment Completed.",
-        "package_id":"kh.com.sabay.aog.local.2_usd",
-        "psp_asset_code":"sc",
-        "status":200
+        "txHash": "f1aa24eddccc727d5b796d196ef26ea674656dd352b6ef277ce319073927cee8",
+        "paymentAddress": "606d1d51c9bf420011a68da4*invoice.master.sabay.com"
     }
 ```
 
@@ -127,7 +122,9 @@ Every purchase with MySabay SDK has to be recorded in our network. Call function
 To purchase with android in-app purchase, call below function. 
 
 ```java 
-    MySabaySDK.getInstance().verifyInAppPurcahse(data, googleVerifyBody, new DataCallback<Object>() {
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
+    MySabaySDK.getInstance().verifyInAppPurchase(data, googleVerifyBody, new DataCallback<Object>() {
         @Override
         public void onSuccess(Object response) {
             LogUtil.info("Verify In app purchase", response.toString());
@@ -148,6 +145,8 @@ To purchase with android in-app purchase, call below function.
 To make purchase with pre-authorization provider, call this function 
 
 ```java 
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
     MySabaySDK.getInstance().postToChargePreAuth(data, new DataCallback<Object>() {
         @Override
         public void onSuccess(Object response) {
@@ -167,6 +166,8 @@ To make purchase with pre-authorization provider, call this function
 
 To make purchase with one-time provider, call this function
 ```java
+    import kh.com.mysabay.sdk.pojo.thirdParty.payment.Data;
+
     MySabaySDK.getInstance().postToChargeWithOneTime(data, new DataCallback<String>() {
         @Override
         public void onSuccess(String response) {
@@ -207,7 +208,7 @@ When purchase is finished, you have to check status for invoice that you have cr
     }); 
 ```
 
-Invoice status will take some time to update. To check payment status schedully, call this function.
+Invoice status will take some time to update. To check payment status as schedule, call this function.
 
 ```java 
   MySabaySDK.getInstance().scheduledCheckPaymentStatus(handler, invoiceId, interval, repeat, new DataCallback<GetInvoiceByIdQuery.Invoice_getInvoiceById>() {
