@@ -544,11 +544,10 @@ public class MySabaySDK {
 
     public String storeApiUrl() {
         return mSdkConfiguration.isSandBox ? "http://pp.master.mysabay.com/" : "http://pp.master.mysabay.com/";
-//        return mSdkConfiguration.isSandBox ? "https://demo-pp.testing.ssn.digital/": "https://demo-pp.testing.ssn.digital/";
     }
 
     public String getPaymentAddress(String invoiceId) {
-        return mSdkConfiguration.isSandBox ? invoiceId + "*invoice.master.sabay.com" : invoiceId + "*invoice.sabay.com";
+        return mSdkConfiguration.isSandBox ? invoiceId + "*invoice-api.master.sabay.com" : invoiceId + "*invoice-api.sabay.com";
     }
 
     public String serviceCode() {
