@@ -33,7 +33,7 @@ Using ui support you dont to care about session for user, MySabay SDK will handl
 If you want user to try your app without login with account, MySabay SDK provides function to login as guest.
 
 ```java
-    MySabaySDK.getInstance().loginGuest(new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
+    MySabaySDK.getInstance().loginGuest(deviceID, new DataCallback<LoginGuestMutation.Sso_loginGuest>() {
         @Override
         public void onSuccess(LoginGuestMutation.Sso_loginGuest response) {
             LogUtil.info("Login as guest", response.toString());
@@ -46,6 +46,7 @@ If you want user to try your app without login with account, MySabay SDK provide
         });
     });
 ```
+- `deviceID: String` MEI on android device.
 
 ### Login Phone
 

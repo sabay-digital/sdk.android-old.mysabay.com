@@ -56,7 +56,7 @@ In ui support you can also use theses function too.
 | ```getUserProfile()``` | To get user's profile. |
 | ```refreshTokens()``` | To refresh login's tokens. |
 | ```verifyTokens()``` | To check if token is verified |
-| ```saveAppItem(String item``` | To store appItem `(accessToken, refreshToken, expire)` in local storage|
+| ```saveAppItem(String item)``` | To store appItem `(accessToken, refreshToken, expire)` in local storage|
 | ```currentToken()``` | To get current accessToken|
 | ```currentRefreshToken()``` | To get current refreshToken|
 | ```logout()``` | To logout user |

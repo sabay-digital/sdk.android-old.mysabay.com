@@ -1,5 +1,36 @@
 Sabay currently publishes android SDK with version below:
 
+-Latest: 2.0.2-o
+    - Old Android: 'com.github.sabay-digital:sdk.android-old.mysabay.com:2.0.2-o'
+    - Changes
+        SDK offered 2 options below:
+            1 UI Support
+            2 Functionalities Support
+            - Process Changes
+                - User
+                    - Login with Phone number
+                        - If phone number has existing MySabay account so it need to verify MySabay account
+                            - If phone number has existing MySabay account so it need to verify MySabay account
+                            - Enter password to verify account or you can create new account here
+                        - If phone number doesn't have MySabay account so OTP has been sent.
+                    - Login as guest
+                    - Login with MySabay
+                    - Login with facebook
+                    - Register MySabay account
+                    - Register MySabay account related to phone number
+                - Store
+                    - Change process of Purchase item 
+                        - To purchase product we need to create invoice and get payment detail from gateway
+                        - After get payment detail we need to call to rest api base on payment service provider
+                        - Final step we need to check invoice status form gateway
+            - New Feature
+                - Tracking (new)
+                    - SDK has implement some tracking feature
+                        - Track screen user visit
+                        - Track user's action
+                        - Track product purchase of user
+                        - Set custom user id for tracking
+
 -Latest 
     - Move from Rest API to gateway API (GraphQL)
     - Change Login process (Phone Number)
@@ -9,7 +40,7 @@ Sabay currently publishes android SDK with version below:
     - Change Login process (MySabay account)
         - Move from login with MySabay Login WebView to gateway API
     - MySabay account Registration
-    - Login with facebook
+    - Login with facebook 
 
 -Latest: 1.0.18
     - Wing payment
