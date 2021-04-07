@@ -9,7 +9,7 @@ This is the official MySabay SDK for native Android application. To use this SDK
 
 # SDK Functionalities
 
-Currently, MySabay SDK both provides UI support and functionalities Support
+Currently, MySabay SDK provides both UI support and functionalities Support
 
 ## UI Support
 
@@ -39,7 +39,7 @@ In ui support you can also use theses function too.
 
 ## Functionalities support
 
-### user
+### User
 
 |         Function        |           Desciption              |
 | ----------------------- | --------------------------------- |
