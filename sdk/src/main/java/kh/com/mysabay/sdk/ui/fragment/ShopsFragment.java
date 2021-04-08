@@ -23,6 +23,7 @@ import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.gson.Gson;
+import com.mysabay.sdk.Checkout_getPaymentServiceProviderForProductQuery;
 import com.mysabay.sdk.GetExchangeRateQuery;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,7 @@ import kh.com.mysabay.sdk.pojo.AppItem;
 import kh.com.mysabay.sdk.pojo.googleVerify.DataBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.GoogleVerifyBody;
 import kh.com.mysabay.sdk.pojo.googleVerify.ReceiptBody;
+import kh.com.mysabay.sdk.pojo.mysabay.MySabayItemResponse;
 import kh.com.mysabay.sdk.pojo.mysabay.ProviderResponse;
 import kh.com.mysabay.sdk.pojo.profile.UserProfileItem;
 import kh.com.mysabay.sdk.pojo.profile.Wallet;
@@ -71,6 +73,7 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
     private ClipData myClip;
     private ShopItem shopItem;
     private String mySabayId;
+    ProviderResponse provider  = null;
 
     private static String PURCHASE_ID = "kh.com.sabay.aog.iap.5_usd";
     private BillingClient billingClient;
@@ -103,17 +106,39 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
             viewModel.getShopFromServerGraphQL(getContext());
 
         mAdapter = new ShopAdapter(v.getContext(), item -> {
-//            if (!verifyInstallerId(getActivity())) {
-            ProviderResponse data =  viewModel.getInAppPurchaseProvider("play_store");
-            if (!BuildConfig.DEBUG) {
-                PURCHASE_ID = data.packageId;
-            }
-                viewModel.getMySabayCheckoutWithGraphQL(v.getContext(), item.id);
-                shopItem = item;
-                purchase(v, PURCHASE_ID);
-//            } else {
-//                MessageUtil.displayDialog(getActivity(), getString(R.string.application_do_not_support_in_app_purchase));
-//            }
+            shopItem = item;
+            MySabaySDK.getInstance().getPaymentServiceProvidersByProduct(item.id, new DataCallback<Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct>() {
+                @Override
+                public void onSuccess(Checkout_getPaymentServiceProviderForProductQuery.Checkout_getPaymentServiceProviderForProduct response) {
+                    List<Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider> providers = response.paymentServiceProviders();
+                    List<MySabayItemResponse> mySabayItemResponses = new ArrayList<>();
+                    for (Checkout_getPaymentServiceProviderForProductQuery.PaymentServiceProvider payment : providers) {
+                        MySabayItemResponse paymentProvider = new Gson().fromJson(new Gson().toJson(payment), MySabayItemResponse.class);
+                        mySabayItemResponses.add(paymentProvider);
+                    }
+                    for (MySabayItemResponse item : mySabayItemResponses) {
+                        if (item.type.equals(Globals.IAP_PROVIDER)) {
+                            for (ProviderResponse providerItem: item.providers) {
+                                if (StringUtils.equals(providerItem.code, "play_store")) {
+                                    provider = providerItem;
+                                }
+                            }
+                        }
+                    }
+                    if (provider != null) {
+                        if (!BuildConfig.DEBUG) {
+                            PURCHASE_ID = provider.packageId;
+                        }
+                        purchase(v, PURCHASE_ID);
+                    } else {
+                        MessageUtil.displayDialog(v.getContext(), "No payment provider");
+                    }
+                }
+                @Override
+                public void onFailed(Object error) {
+                    MessageUtil.displayDialog(v.getContext(), error.toString());
+                }
+            });
         });
 
         mLayoutManager = new GridLayoutManager(v.getContext(), getResources().getInteger(R.integer.layout_size));
@@ -348,8 +373,9 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                             purchase.getPurchaseTime(), purchase.getPurchaseState(), purchase.getPurchaseToken());
                     receiptBody.withData(dataBody);
                     googleVerifyBody.withReceipt(receiptBody);
-                    ProviderResponse provider = viewModel.getInAppPurchaseProvider("play_store");
-                    createPayment(getContext(), shopItem, provider, Globals.IAP_PROVIDER, googleVerifyBody);
+                    if (provider != null) {
+                        createPayment(getContext(), shopItem, provider, Globals.IAP_PROVIDER, googleVerifyBody);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
