@@ -130,6 +130,8 @@ public class ShopsFragment extends BaseFragment<FmShopBinding, StoreApiVM> imple
                             PURCHASE_ID = provider.packageId;
                         }
                         purchase(v, PURCHASE_ID);
+                    } else {
+                        MessageUtil.displayDialog(v.getContext(), "No payment provider");
                     }
                 }
                 @Override
